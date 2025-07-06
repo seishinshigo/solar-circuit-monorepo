@@ -1,42 +1,68 @@
-# .github/workflows/ci.yml
 name: solar-circuit-ci
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [ "**" ]          # 全ブランチでテストは回す
+  pull_request:
+    branches: [ "main" ]        # main 宛て PR も対象
+  workflow_dispatch:            # 手動実行
+
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Extract Work-Order ID
-      id: extract_wo_id
-      run: |
-        WO_ID=""
-        LATEST_WO_FILE=$(ls -t projects/solar_circuit/workorders/incoming/wo-*.json 2>/dev/null | head -n 1)
-        if [ -n "$LATEST_WO_FILE" ]; then
-          WO_ID=$(basename "$LATEST_WO_FILE" .json)
-          echo "WO_ID=$WO_ID" >> $GITHUB_ENV
-          echo "Extracted Work-Order ID: $WO_ID"
-        else
-          echo "No new Work-Order file found. Skipping Work-Order ID extraction."
-        fi
-    - uses: actions/setup-python@v5
-      with: { python-version: "3.12" }
-    - uses: actions/cache@v4
+    #--------------------------------------------------------------
+    - name: ☑️  Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0          # git diff 用にフル履歴取得
+
+    - name: 🐍  Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    #--------------------------------------------------------------
+    - name: 🗄  Cache pip
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('projects/solar_circuit/requirements-dev.txt') }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements-dev.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
-    - run: pip install -r requirements-dev.txt
-    - run: pip install -e .
-    - run: pytest -q
-    - name: Run Markdown Lint
-      run: npx markdownlint-cli2 "projects/solar_circuit/**/*.md"
-    - name: Check for Work-Order report
-      if: (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'closed')) && env.WO_ID != ''
+
+    #--------------------------------------------------------------
+    - name: 📦  Install deps
       run: |
-        REPORT_PATH="projects/solar_circuit/workorders/reports/${{ env.WO_ID }}_report.md"
-        if [ ! -f "$REPORT_PATH" ]; then
-          echo "Error: Missing Work-Order report for ${{ env.WO_ID }}. Expected at $REPORT_PATH"
-          exit 1
+        pip install -r projects/solar_circuit/requirements-dev.txt
+        pip install -e projects/solar_circuit
+
+    #--------------------------------------------------------------
+    - name: 🔍 Detect Work-Order ID
+      id: detect
+      run: |
+        WO_ID=$(git diff --name-only ${{ github.sha }} ${{ github.sha }}^ \
+                 | grep -Eo 'wo-[0-9]{8}-[0-9]{3}' | head -n1)
+        echo "WO_ID=$WO_ID" >> $GITHUB_ENV
+        echo "::notice title=WO_ID::$WO_ID"
+
+    #--------------------------------------------------------------
+    - name: 🧪  Run tests
+      run: pytest -q
+
+    #--------------------------------------------------------------
+    - name: 📝  Markdown Lint
+      run: npx markdownlint-cli2 "projects/solar_circuit/**/*.md"
+
+    #--------------------------------------------------------------
+    - name: 📑  Check Work-Order report (main only)
+      if: |
+        github.ref == 'refs/heads/main' && env.WO_ID != ''
+      run: |
+        REPORT="projects/solar_circuit/workorders/reports/${WO_ID}_report.md"
+        echo "Expecting report: $REPORT"
+        if [ ! -f "$REPORT" ]; then
+          echo "❌ Error: Work-Order report not found."; exit 1
         fi
-        echo "Work-Order report for ${{ env.WO_ID }} found."
+        echo "✅ Report exists."
