@@ -1,0 +1,27 @@
+{
+  "schema": "gemini.workorder@1",
+  "id": "wo-20240710-003",
+  "title": "Solar Circuit – フィードバック反映 & レポート命名規約整備",
+  "objective": "Orchestrator skeleton の軽微改善と作業報告書の日本語校正、ファイル命名規約の確立。",
+  "tasks": [
+    "update projects/solar_circuit/tests/test_orchestrator.py : すべてのテスト関数に日本語 docstring を追加",
+    "enhance CI: .github/workflows/ci.yml に actions/cache@v4 で pip キャッシュを追加",
+    "extend README.md : 『ローカル開発サーバ起動』セクションに uvicorn 起動例 (--reload) を追記",
+    "rewrite workorders/reports/wo-20240710-001_report.md : 日本語を校正し、見出し•箇条書きを整理（内容は変えない）",
+    "rename / move 既存レポート → workorders/reports/wo-20240710-001_report.md  ※ Work-Order ID と同じプレフィックス + _report.md が公式規約",
+    "document the naming rule in docs/solar_circuit/03_dev_setup.md →   'incoming/{ID}.json'  と 'reports/{ID}_report.md'",
+    "commit all changes in branch feat/report-naming-and-cleanup & push PR"
+  ],
+  "acceptance": [
+    "pytest -q passes (4 tests想定)",
+    "GitHub Actions green & runtime ≤ prior run ×0.8",
+    "README に uvicorn 起動例あり",
+    "report ファイル名が workorders/reports/wo-20240710-001_report.md に統一され、Markdown linter 警告ゼロ",
+    "docs/solar_circuit/03_dev_setup.md に命名規約が追記されている"
+  ],
+  "timeline": "PR within 12h, progress comment at 6h",
+  "metadata": {
+    "created_by": "openai-chatgpt",
+    "base_branch": "feat/orchestrator-skeleton"
+  }
+}
