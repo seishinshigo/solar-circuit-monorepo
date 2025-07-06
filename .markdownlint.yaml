@@ -1,0 +1,12 @@
+default: true
+MD013:
+  line_length: 120
+MD022: false
+MD040:
+  language: "none"
+MD047: false
+MD030: false
+MD038: false
+
+ignoreFiles:
+  - "projects/solar_circuit/workorders/reports/**/*.md"
