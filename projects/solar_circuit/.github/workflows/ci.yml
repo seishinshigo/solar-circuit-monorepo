@@ -6,6 +6,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - name: Extract Work-Order ID
+      id: extract_wo_id
+      run: |
+        WO_ID=""
+        LATEST_WO_FILE=$(ls -t projects/solar_circuit/workorders/incoming/wo-*.json 2>/dev/null | head -n 1)
+        if [ -n "$LATEST_WO_FILE" ]; then
+          WO_ID=$(basename "$LATEST_WO_FILE" .json)
+          echo "WO_ID=$WO_ID" >> $GITHUB_ENV
+          echo "Extracted Work-Order ID: $WO_ID"
+        else
+          echo "No new Work-Order file found. Skipping Work-Order ID extraction."
+        fi
     - uses: actions/setup-python@v5
       with: { python-version: "3.12" }
     - uses: actions/cache@v4
@@ -19,10 +31,12 @@ jobs:
     - run: pytest -q
     - name: Run Markdown Lint
       run: npx markdownlint-cli2 "projects/solar_circuit/**/*.md"
-    - name: Check for report files
+    - name: Check for Work-Order report
+      if: (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'closed')) && env.WO_ID != ''
       run: |
-        REPORT_COUNT=$(find projects/solar_circuit/workorders/reports/ -maxdepth 1 -name "*_report.md" | wc -l)
-        if [ "$REPORT_COUNT" -eq 0 ]; then
-          echo "Error: No *_report.md files found in projects/solar_circuit/workorders/reports/."
+        REPORT_PATH="projects/solar_circuit/workorders/reports/${{ env.WO_ID }}_report.md"
+        if [ ! -f "$REPORT_PATH" ]; then
+          echo "Error: Missing Work-Order report for ${{ env.WO_ID }}. Expected at $REPORT_PATH"
           exit 1
         fi
+        echo "Work-Order report for ${{ env.WO_ID }} found."

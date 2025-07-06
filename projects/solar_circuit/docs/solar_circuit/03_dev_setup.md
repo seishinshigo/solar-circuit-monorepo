@@ -23,3 +23,9 @@ python -m solar_circuit.cli report save <WorkOrder ID> <レポートファイル
 ```
 
 このコマンドを実行すると、指定されたレポートファイルが `workorders/reports/{WorkOrder ID}_report.md` として保存されます。コミット時には、このディレクトリにレポートファイルが存在することがチェックされます。
+
+## CI ルール
+
+CI ワークフローでは、以下のルールが適用されます。
+
+- **Work-Order レポートの存在チェック**: `main` ブランチへの `push` または `pull_request` が `closed` された際に、関連する Work-Order ID のレポートファイル (`workorders/reports/{WO_ID}_report.md`) が存在するかどうかをチェックします。レポートが存在しない場合、CI は失敗します。

@@ -28,3 +28,23 @@ python -m solar_circuit.cli report save <WorkOrder ID> <レポートファイル
 ```bash
 git config core.hooksPath .githooks
 ```
+
+## CI ルール
+
+CI ワークフローでは、以下のルールが適用されます。
+
+- **Work-Order レポートの存在チェック**: `main` ブランチへの `push` または `pull_request` が `closed` された際に、関連する Work-Order ID のレポートファイル (`workorders/reports/{WO_ID}_report.md`) が存在するかどうかをチェックします。レポートが存在しない場合、CI は失敗します。
+
+### CI ログ例
+
+#### 成功例
+
+```
+Work-Order report for wo-20240710-001 found.
+```
+
+#### 失敗例
+
+```
+Error: Missing Work-Order report for wo-20240710-001. Expected at projects/solar_circuit/workorders/reports/wo-20240710-001_report.md
+```

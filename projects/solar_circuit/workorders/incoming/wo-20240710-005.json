@@ -1,0 +1,24 @@
+{
+  "schema": "gemini.workorder@1",
+  "id": "wo-20240710-005",
+  "title": "Solar Circuit – CI で Work-Order 対応レポートを厳密チェック (方式B)",
+  "objective": "CI ワークフローに『PR／main への push 時に、対象 Work-Order ID のレポート Markdown が存在するか』を検証するステップを実装し、途中コミットでは失敗しないようにする。",
+  "tasks": [
+    "🛠 **CI 修正** : .github/workflows/ci.yml に 2 ステップ追加\n      1) 直近の diff から Work-Order ID (wo-YYYYMMDD-XXX) を抽出し GITHUB_ENV に設定\n      2) main への push または pull_request(closed) 時のみ、workorders/reports/${WO_ID}_report.md が存在するかチェック。無ければ exit 1",
+    "🧹 **.gitkeep 削除** : workorders/reports/.gitkeep を削除して誤検出防止",
+    "📖 **ドキュメント更新** : README.md の『CI ルール』に新検証ロジックを追記。docs/solar_circuit/03_dev_setup.md へも反映",
+    "🔧 **README サンプル** : CI 失敗例 / 成功例のログ断片をコードブロックで示す",
+    "🚦 **ブランチ & PR** : 変更を branch feat/ci-report-check にコミットし、PR 作成"
+  ],
+  "acceptance": [
+    "feature ブランチでレポート無し → CI のチェック step がスキップ (green)",
+    "main へ merge する PR でレポート有り → CI green",
+    "main へ merge する PR でレポート無し → CI red (エラーメッセージ: missing report)"
+  ],
+  "timeline": "PR within 12h, 進捗コメントを 6h で投稿",
+  "metadata": {
+    "created_by": "openai-chatgpt",
+    "base_branch": "main",
+    "check_strategy": "diff-based ID detection (Plan B)"
+  }
+}
