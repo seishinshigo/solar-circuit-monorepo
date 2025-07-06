@@ -52,6 +52,16 @@ jobs:
       run: pytest -q
 
     #--------------------------------------------------------------
+    - name: 🟦 Set up Node
+      uses: actions/setup-node@v4
+      with:
+      node-version: "20"
+
+    #--------------------------------------------------------------
+    - name: �� Install markdownlint-cli2
+      run: npm install -g markdownlint-cli2
+
+    #--------------------------------------------------------------
     - name: 📝  Markdown Lint
       run: npx markdownlint-cli2 "projects/solar_circuit/**/*.md"
 

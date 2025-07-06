@@ -3,4 +3,3 @@ typer
 httpx
 fastapi
 uvicorn
-markdownlint-cli2
