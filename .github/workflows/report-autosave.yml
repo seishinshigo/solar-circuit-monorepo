@@ -1,0 +1,66 @@
+name: autosave-report
+
+on:
+  push:
+    branches:            # 任意：開発ブランチのみ対象
+      - "feat/**"
+      - "fix/**"
+      - "chore/**"
+  workflow_dispatch:     # 手動トリガも可
+
+jobs:
+  save-report:
+    runs-on: ubuntu-latest
+
+    steps:
+    #-------------------------------------------------------------------
+    - name: ☑️  Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0          # diff 取得のためフル履歴
+
+    - name: 🐍  Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    # ※ Gemini CLI が pip で入る想定。別手段なら書き換え
+    - name: 📦  Install Gemini CLI
+      run: pip install gemini-cli
+
+    #-------------------------------------------------------------------
+    - name: 🔍 Detect Work-Order ID
+      id: detect
+      shell: bash
+      run: |
+        WO_ID=$(git diff --name-only ${{ github.sha }} ${{ github.sha }}^ \
+                 | grep -Eo 'wo-[0-9]{8}-[0-9]{3}' | head -n1)
+        echo "WO_ID=$WO_ID" >> $GITHUB_ENV
+        echo "::notice title=WO_ID::$WO_ID"
+
+    # WO_ID が無いコミットはスキップして終了
+    - name: ⚠️  Skip if no WO_ID
+      if: env.WO_ID == ''
+      run: echo "No Work-Order ID detected — nothing to do."
+
+    #-------------------------------------------------------------------
+    - name: 📝 Generate report via Gemini
+      if: env.WO_ID != ''
+      shell: bash
+      run: |
+        gemini /exec workorder "$WO_ID" --mode=report > "${WO_ID}_report.md"
+
+    - name: 💾 Save report & commit
+      if: env.WO_ID != ''
+      shell: bash
+      run: |
+        REPORT_DIR="projects/solar_circuit/workorders/reports"
+        mkdir -p "$REPORT_DIR"
+        mv "${WO_ID}_report.md" "$REPORT_DIR/${WO_ID}_report.md"
+
+        git config user.name  "github-actions"
+        git config user.email "actions@github.com"
+
+        git add "$REPORT_DIR/${WO_ID}_report.md"
+        git commit -m "docs: auto-generated report for ${WO_ID}" || echo "Nothing to commit"
+        git push
