@@ -1,0 +1,28 @@
+{
+  "schema": "gemini.workorder@1",
+  "id": "wo-20240710-004",
+  "title": "Solar Circuit – 作業報告書の自動保存フロー実装 & 追加メンテ作業",
+  "objective": "コミット／プッシュ前に作業報告書 ( *_report.md* ) を自動的に workorders/reports/ に保存する仕組みを整備し、関連ドキュメントと CI を更新する。",
+  "tasks": [
+    "✅ **save_report スクリプト** : scripts/save_report.sh を追加。引数に WorkOrder ID を取り、$PWD/workorders/reports/{ID}_report.md にレポートを保存する。Gemini CLI がレポート生成後にこのスクリプトを必ず実行する想定。",
+    "✅ **CLI ラッパー** : solar_circuit/cli.py に sub-command `sc report save <ID> <file>` を実装し、上記スクリプトを呼び出す。README に使用例を追記。",
+    "✅ **pre-commit Hook** : .githooks/pre-commit で『未保存の *_report.md が workorders/reports/ に存在しない場合はコミットを拒否』するチェックを追加。開発者が `git config core.hooksPath .githooks` で有効化できるよう README に記載。",
+    "✅ **CI チェック** : .github/workflows/ci.yml に step 追加 → push / PR 時に `ls workorders/reports/*_report.md` が少なくとも 1 件存在することを検証。存在しなければワークフローを fail させる。",
+    "✅ **MarkdownLint** : markdownlint-cli2 を requirements-dev.txt に追加し、CI で *.md を lint。既存レポート wo-20240710-001_report.md と wo-20240710-003_report.md が警告ゼロになるよう最小修正。",
+    "✅ **docs 更新** : docs/solar_circuit/03_dev_setup.md に『レポート保存フロー』と `sc report save` 例を追記。",
+    "✅ **既存レポートの配置確認** : workorders/reports/wo-20240710-003_report.md を markdownlint に合わせて微修正し、ファイル名・場所が規約に沿っていることを確認。",
+    "✅ **ブランチ & PR** : すべての変更を branch `feat/report-autosave` にコミットし、プッシュして PR 作成"
+  ],
+  "acceptance": [
+    "pytest -q passes (既存テスト + 新 CLI テスト)",
+    "`sc report save wo-20240710-999 sample.md` を実行すると workorders/reports/wo-20240710-999_report.md が生成される",
+    "pre-commit フックで未保存レポートがあるとコミット拒否になることを手動確認（README 手順どおり）",
+    "GitHub Actions green；CI 内 lint step が pass",
+    "docs/solar_circuit/03_dev_setup.md に新フローが反映"
+  ],
+  "timeline": "PR within 24h, progress comment at 12h",
+  "metadata": {
+    "created_by": "openai-chatgpt",
+    "base_branch": "main"
+  }
+}

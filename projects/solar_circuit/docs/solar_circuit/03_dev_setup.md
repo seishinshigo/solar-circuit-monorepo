@@ -11,3 +11,15 @@ Work-Order ファイルとそれに対応するレポートファイルは、以
   - 例: `reports/wo-20240710-001_report.md`
 
 `{ID}` は Work-Order の一意な識別子であり、Work-Order ファイルとレポートファイルで共通して使用されます。
+
+## レポート保存フロー
+
+作業報告書は、コミット前に `workorders/reports/` ディレクトリに自動的に保存されるように設定されています。以下の手順でレポートを保存してください。
+
+```bash
+python -m solar_circuit.cli report save <WorkOrder ID> <レポートファイルのパス>
+# 例:
+# python -m solar_circuit.cli report save wo-20240710-001 path/to/your/report.md
+```
+
+このコマンドを実行すると、指定されたレポートファイルが `workorders/reports/{WorkOrder ID}_report.md` として保存されます。コミット時には、このディレクトリにレポートファイルが存在することがチェックされます。
