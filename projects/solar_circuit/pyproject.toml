@@ -6,8 +6,9 @@ build-backend = "setuptools.build_meta"
 name = "solar-circuit"
 version = "0.1.0"
 dependencies = ["typer", "jsonschema"]
+
 [project.scripts]
-sc = "solar_circuit.cli:main"
+sc = "solar_circuit.cli:app"  # ← 修正点
 
 [tool.setuptools.packages.find]
 where = ["."]

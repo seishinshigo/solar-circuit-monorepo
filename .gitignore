@@ -10,3 +10,5 @@ coverage_html/
 .envrc
 # Vim swap files
 *.swp
+# setuptools metadata
+*.egg-info/
