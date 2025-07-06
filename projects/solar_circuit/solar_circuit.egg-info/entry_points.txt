@@ -1,0 +1,2 @@
+[console_scripts]
+sc = solar_circuit.cli:main

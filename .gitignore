@@ -1,0 +1,10 @@
+# Python / direnv
+__pycache__/
+.direnv/
+*.pyc
+# Virtualenv
+.venv/
+# Coverage
+coverage_html/
+# Environment files
+.envrc
