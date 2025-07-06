@@ -1,66 +1,62 @@
 name: autosave-report
 
+# ────────────────────────────────────────────────
+# solar-circuit-ci が Success になった後に自動実行
+# ────────────────────────────────────────────────
 on:
-  push:
-    branches:            # 任意：開発ブランチのみ対象
-      - "feat/**"
-      - "fix/**"
-      - "chore/**"
-  workflow_dispatch:     # 手動トリガも可
+  workflow_run:
+    workflows: ["solar-circuit-ci"]
+    types:
+      - completed
 
 jobs:
   save-report:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
-    #-------------------------------------------------------------------
-    - name: ☑️  Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0          # diff 取得のためフル履歴
+      # 1️⃣ 対象ブランチをチェックアウト
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
 
-    - name: 🐍  Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.12"
+      # 2️⃣ Python & 依存関係
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-    # ※ Gemini CLI が pip で入る想定。別手段なら書き換え
-    - name: 📦  Install Gemini CLI
-      run: pip install gemini-cli
+      - name: 📦 Install deps
+        run: |
+          pip install -r projects/solar_circuit/requirements-dev.txt
 
-    #-------------------------------------------------------------------
-    - name: 🔍 Detect Work-Order ID
-      id: detect
-      shell: bash
-      run: |
-        WO_ID=$(git diff --name-only ${{ github.sha }} ${{ github.sha }}^ \
-                 | grep -Eo 'wo-[0-9]{8}-[0-9]{3}' | head -n1)
-        echo "WO_ID=$WO_ID" >> $GITHUB_ENV
-        echo "::notice title=WO_ID::$WO_ID"
+      # 3️⃣ 直近コミット差分から Work-Order ID を抽出
+      - name: 🔍 Detect Work-Order ID
+        id: detect
+        run: |
+          WO_ID=$(git diff --name-only ${{ github.event.workflow_run.head_sha }}~1 \
+                           ${{ github.event.workflow_run.head_sha }} \
+                   | grep -oE 'wo-[0-9]{8}-[0-9]{3}' | head -n1) || true
+          echo "WO_ID=$WO_ID" >> "$GITHUB_OUTPUT"
 
-    # WO_ID が無いコミットはスキップして終了
-    - name: ⚠️  Skip if no WO_ID
-      if: env.WO_ID == ''
-      run: echo "No Work-Order ID detected — nothing to do."
+      # 4️⃣ Work-Order 変更が無い場合は早期リターン
+      - name: ⏭️ Skip if no WO_ID
+        if: ${{ steps.detect.outputs.WO_ID == '' }}
+        run: echo "No Work-Order diff found – skipping autosave."
 
-    #-------------------------------------------------------------------
-    - name: 📝 Generate report via Gemini
-      if: env.WO_ID != ''
-      shell: bash
-      run: |
-        gemini /exec workorder "$WO_ID" --mode=report > "${WO_ID}_report.md"
+      # 5️⃣ Gemini CLI でレポート生成（ダミー例）
+      - name: 📝 Generate report via Gemini
+        if: ${{ steps.detect.outputs.WO_ID != '' }}
+        run: |
+          sc report save "${{ steps.detect.outputs.WO_ID }}"
 
-    - name: 💾 Save report & commit
-      if: env.WO_ID != ''
-      shell: bash
-      run: |
-        REPORT_DIR="projects/solar_circuit/workorders/reports"
-        mkdir -p "$REPORT_DIR"
-        mv "${WO_ID}_report.md" "$REPORT_DIR/${WO_ID}_report.md"
-
-        git config user.name  "github-actions"
-        git config user.email "actions@github.com"
-
-        git add "$REPORT_DIR/${WO_ID}_report.md"
-        git commit -m "docs: auto-generated report for ${WO_ID}" || echo "Nothing to commit"
-        git push
+      # 6️⃣ 生成レポートをコミット & プッシュ
+      - name: 💾 Commit & push report
+        if: ${{ steps.detect.outputs.WO_ID != '' }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add projects/solar_circuit/workorders/reports/${{ steps.detect.outputs.WO_ID }}_report.md
+          git commit -m "chore(report): autosave ${{ steps.detect.outputs.WO_ID }}"
+          git push
