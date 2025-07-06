@@ -31,32 +31,53 @@ jobs:
         run: |
           pip install -r projects/solar_circuit/requirements-dev.txt
 
-      # 3️⃣ 直近コミット差分から Work-Order ID を抽出
-      - name: 🔍 Detect Work-Order ID
-        id: detect
+      # 3️⃣ changed-files で差分のある Work-Order ID を特定
+      - name: 🔍 Detect changed Work-Order files
+        id: changed-files
+        uses: tj-actions/changed-files@v41
+        with:
+          files: projects/solar_circuit/workorders/incoming/**.json
+
+      # 4️⃣ 変更された Work-Order ごとにレポートを生成・検証
+      - name: 📝 Generate and Validate Reports
+        if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-          WO_ID=$(git diff --name-only ${{ github.event.workflow_run.head_sha }}~1 \
-                           ${{ github.event.workflow_run.head_sha }} \
-                   | grep -oE 'wo-[0-9]{8}-[0-9]{3}' | head -n1) || true
-          echo "WO_ID=$WO_ID" >> "$GITHUB_OUTPUT"
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            WO_ID=$(basename "$file" .json)
+            echo "--- Processing $WO_ID ---"
 
-      # 4️⃣ Work-Order 変更が無い場合は早期リターン
-      - name: ⏭️ Skip if no WO_ID
-        if: ${{ steps.detect.outputs.WO_ID == '' }}
-        run: echo "No Work-Order diff found – skipping autosave."
+            # ダミーレポートを生成
+            DUMMY_REPORT_FILE="dummy_report.json"
+            cat <<EOF > $DUMMY_REPORT_FILE
+            {
+              "schema": "gemini.report@1",
+              "workorder_id": "$WO_ID",
+              "round": 1,
+              "phase": "coding",
+              "status": "success",
+              "summary": "This is a dummy report.",
+              "timestamp": "2025-07-06T12:00:00Z"
+            }
+          EOF
+            echo "Generated dummy report for $WO_ID"
 
-      # 5️⃣ Gemini CLI でレポート生成（ダミー例）
-      - name: 📝 Generate report via Gemini
-        if: ${{ steps.detect.outputs.WO_ID != '' }}
-        run: |
-          sc report save "${{ steps.detect.outputs.WO_ID }}"
+            # レポートを検証
+            sc report validate $DUMMY_REPORT_FILE
+            echo "Validation successful for $WO_ID"
 
-      # 6️⃣ 生成レポートをコミット & プッシュ
+            # レポートを保存 (Markdown形式)
+            DUMMY_MD_FILE="dummy_report.md"
+            echo "# Dummy Report for $WO_ID" > $DUMMY_MD_FILE
+            sc report save "$WO_ID" "$DUMMY_MD_FILE"
+            echo "Saved dummy report for $WO_ID"
+          done
+
+      # 5️⃣ 生成レポートをコミット & プッシュ
       - name: 💾 Commit & push report
-        if: ${{ steps.detect.outputs.WO_ID != '' }}
+        if: steps.changed-files.outputs.any_changed == 'true'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add projects/solar_circuit/workorders/reports/${{ steps.detect.outputs.WO_ID }}_report.md
-          git commit -m "chore(report): autosave ${{ steps.detect.outputs.WO_ID }}"
+          git add projects/solar_circuit/workorders/reports/*.md
+          git commit -m "chore(report): autosave reports"
           git push

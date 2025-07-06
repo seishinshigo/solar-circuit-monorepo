@@ -1,0 +1,41 @@
+{
+  "schema": "gemini.workorder@1",
+  "id": "wo-20250706-101",
+  "objective": "Solar Circuit v2 の進捗確認ドキュメントをレビューし、必要なファイル更新とタスク実行を行う",
+  "constraints": {
+    "deadline": "2025-07-10T15:00:00Z",
+    "language": ["python3.12", "yaml"],
+    "sla": "silver"
+  },
+  "tasks": [
+    {
+      "phase": "design",
+      "acceptance": "GEMINI.md が v2 情報で更新され、light_ai_project 記述が削除されている（G-1）"
+    },
+    {
+      "phase": "coding",
+      "acceptance": "shared/schemas に workorder / report JSON Schema が追加（G-2）"
+    },
+    {
+      "phase": "coding",
+      "acceptance": "report-autosave.yml が changed-files アクションで差分判定し、差分ゼロでスキップできること（G-3）"
+    },
+    {
+      "phase": "coding",
+      "acceptance": "sc report save が stub 実装され、テストがパス（G-4）"
+    },
+    {
+      "phase": "docs",
+      "acceptance": "README に CI バッジが追加（G-5）"
+    }
+  ],
+  "notifiers": [
+    "email:wandr@example.com",
+    "slack:#solar-circuit-dev"
+  ],
+  "metadata": {
+    "created_by": "openai-gpt4o",
+    "repo": "seishinshigo/solar-circuit-monorepo",
+    "branch": "main"
+  }
+}

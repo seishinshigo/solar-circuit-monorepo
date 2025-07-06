@@ -4,3 +4,4 @@ httpx
 fastapi
 uvicorn
 pytest-asyncio
+jsonschema

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "solar-circuit"
 version = "0.1.0"
-dependencies = ["typer"]
+dependencies = ["typer", "jsonschema"]
 [project.scripts]
 sc = "solar_circuit.cli:main"
 
