@@ -1,4 +1,7 @@
 # Solar Circuit
+
+[![solar-circuit-ci](https://github.com/seishinshigo/solar-circuit-monorepo/actions/workflows/ci.yml/badge.svg)](https://github.com/seishinshigo/solar-circuit-monorepo/actions/workflows/ci.yml)
+
 Bootstrap project.
 
 ## ローカル起動方法
