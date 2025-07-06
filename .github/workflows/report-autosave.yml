@@ -1,60 +1,61 @@
 name: autosave-report
 
 # ────────────────────────────────────────────────
-# solar-circuit-ci が Success になった後に自動実行
+# ① main への push / ② PR 上で solar-circuit-ci 成功後
+#    の両方でレポートチェック & 自動保存
 # ────────────────────────────────────────────────
 on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
   workflow_run:
     workflows: ["solar-circuit-ci"]
-    types:
-      - completed
+    types: [completed]
 
 jobs:
-  save-report:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  ensure-report:
+    if: |
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
+      (github.event_name != 'workflow_run')
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ 対象ブランチをチェックアウト
-      - name: 📥 Checkout
+      - name: 📥 Checkout HEAD
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_branch }}
+          ref: ${{ github.event.workflow_run.head_branch || github.head_ref || github.ref_name }}
 
-      # 2️⃣ Python & 依存関係
+      # 依存パッケージ（Gemini CLI など）
       - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - run: pip install -r projects/solar_circuit/requirements-dev.txt
 
-      - name: 📦 Install deps
-        run: |
-          pip install -r projects/solar_circuit/requirements-dev.txt
+      # 変更ファイル検出
+      - name: 🔍 Changed files
+        id: changed
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            projects/solar_circuit/workorders/reports/*_report.md
+            projects/solar_circuit/workorders/incoming/*.json
 
-      # 3️⃣ 直近コミット差分から Work-Order ID を抽出
-      - name: 🔍 Detect Work-Order ID
+      # Work-Order ID を推測（reports に差分が無い場合のみ）
+      - name: 🧮 Detect WO_ID
         id: detect
+        if: steps.changed.outputs.any_changed == 'false'
         run: |
-          WO_ID=$(git diff --name-only ${{ github.event.workflow_run.head_sha }}~1 \
-                           ${{ github.event.workflow_run.head_sha }} \
-                   | grep -oE 'wo-[0-9]{8}-[0-9]{3}' | head -n1) || true
-          echo "WO_ID=$WO_ID" >> "$GITHUB_OUTPUT"
+          WO=$(git diff --name-only HEAD~1 HEAD \
+               | grep -oE 'wo-[0-9]{8}-[0-9]{3}' | head -n1) || true
+          echo "WO_ID=$WO" >> $GITHUB_OUTPUT
 
-      # 4️⃣ Work-Order 変更が無い場合は早期リターン
-      - name: ⏭️ Skip if no WO_ID
-        if: ${{ steps.detect.outputs.WO_ID == '' }}
-        run: echo "No Work-Order diff found – skipping autosave."
-
-      # 5️⃣ Gemini CLI でレポート生成（ダミー例）
-      - name: 📝 Generate report via Gemini
-        if: ${{ steps.detect.outputs.WO_ID != '' }}
+      # report save を実行
+      - name: 📝 Generate & save report
+        if: steps.detect.outputs.WO_ID != ''
         run: |
-          sc report save "${{ steps.detect.outputs.WO_ID }}"
-
-      # 6️⃣ 生成レポートをコミット & プッシュ
-      - name: 💾 Commit & push report
-        if: ${{ steps.detect.outputs.WO_ID != '' }}
-        run: |
+          sc report save "${{ steps.detect.outputs.WO_ID }}" README.md  # ← ダミー入力
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add projects/solar_circuit/workorders/reports/${{ steps.detect.outputs.WO_ID }}_report.md
