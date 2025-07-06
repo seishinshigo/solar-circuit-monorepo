@@ -1,0 +1,24 @@
+{
+  "schema": "gemini.workorder@1",
+  "id": "wo-20240710-002",
+  "title": "Solar Circuit – 軽微フィードバック反映 & 作業報告書の可読性向上",
+  "objective": "Phase-1 で指摘された軽微な改善点を取り込み、作業報告書（Markdown）の日本語を読みやすく整える。",
+  "tasks": [
+    "✅ **テスト強化** : projects/solar_circuit/tests/test_orchestrator.py のテスト関数に日本語 docstring を追加し、pytest -q -rA で分かりやすい名前にする",
+    "✅ **CI 最適化** : .github/workflows/ci.yml に actions/cache@v4 を追加し、pip ディレクトリをキャッシュ → ワークフロー実行時間を短縮",
+    "✅ **README 追記** : ‘ローカル起動方法’ セクションに uvicorn コマンド例（--reload 付き）を追加",
+    "✅ **作業報告書リライト** : workorders/reports/wo-20240710-001_report.md の日本語を校正し、箇条書き整形・見出し追加で読みやすさを向上（内容は変更しない）",
+    "✅ **ファイルコミット** : 上記変更を 1 PR (branch feat/minor-feedback) にまとめて Push"
+  ],
+  "acceptance": [
+    "pytest -q が引き続き PASS (4 テスト想定)",
+    "GitHub Actions が緑 & 実行時間が前回比 ≦ 80%",
+    "README に ‘ローカル開発サーバ起動’ セクションが確認できる",
+    "リライト後の _wo-20240710-001_report.md_ が Markdown Linter (markdownlint-cli2) で警告ゼロ"
+  ],
+  "timeline": "PR within 12h, progress comment at 6h",
+  "metadata": {
+    "created_by": "openai-chatgpt",
+    "base_branch": "feat/orchestrator-skeleton"
+  }
+}
