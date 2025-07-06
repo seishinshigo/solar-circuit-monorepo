@@ -1,0 +1,20 @@
+{ ... }   title: "Solar Circuit Orchestrator Skeleton"
+
+objective: FastAPI Orchestrator with /health endpoint,
+pytest pass, CI green.
+
+tasks:
+  - create projects/solar_circuit/orchestrator/main.py
+    > FastAPI app, /health -> {"status":"ok"}
+  - update requirements-dev.txt (fastapi, uvicorn, httpx)
+  - add test_orchestrator.py using ASGITransport
+  - ensure pytest.ini sets testpaths to solar_circuit/tests
+  - push PR to branch feat/orchestrator-skeleton
+
+acceptance:
+  - sc hello 動作影響なし
+  - uvicorn ...:app /health returns ok
+  - pytest -q passes (3 tests)
+  - GitHub Actions green
+
+timeline: PR within 24h, progress comment at 12h

@@ -1,0 +1,7 @@
+{
+  // projects/solar_circuit/.gemini/settings.json
+  "model": "gemini-2.5-flash",
+  "memory": {
+    "file": "/home/wandr/seishinshigo_system/GEMINI.md"
+  }
+}
