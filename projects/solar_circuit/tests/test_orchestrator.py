@@ -1,5 +1,5 @@
 from httpx import ASGITransport, AsyncClient
-from orchestrator.main import app
+from solar_circuit.orchestrator.main import app
 import pytest
 
 @pytest.mark.asyncio

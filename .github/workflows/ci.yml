@@ -1,0 +1,78 @@
+name: solar-circuit-ci
+
+on:
+  push:
+    branches: [ "**" ]          # 全ブランチでテストは回す
+  pull_request:
+    branches: [ "main" ]        # main 宛て PR も対象
+  workflow_dispatch:            # 手動実行
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    #--------------------------------------------------------------
+    - name: ☑️  Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0          # git diff 用にフル履歴取得
+
+    - name: 🐍  Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    #--------------------------------------------------------------
+    - name: 🗄  Cache pip
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements-dev.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    #--------------------------------------------------------------
+    - name: 📦  Install deps
+      run: |
+        pip install -r projects/solar_circuit/requirements-dev.txt
+        pip install -e projects/solar_circuit
+
+    #--------------------------------------------------------------
+    - name: 🔍 Detect Work-Order ID
+      id: detect
+      run: |
+        WO_ID=$(git diff --name-only ${{ github.sha }} ${{ github.sha }}^ \
+                 | grep -Eo 'wo-[0-9]{8}-[0-9]{3}' | head -n1)
+        echo "WO_ID=$WO_ID" >> $GITHUB_ENV
+        echo "::notice title=WO_ID::$WO_ID"
+
+    #--------------------------------------------------------------
+    - name: 🧪  Run tests
+      run: pytest -q
+
+    #--------------------------------------------------------------
+    - name: 🟦 Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+
+    #--------------------------------------------------------------
+    - name: �� Install markdownlint-cli2
+      run: npm install -g markdownlint-cli2
+
+    #--------------------------------------------------------------
+    - name: 📝  Markdown Lint
+      run: npx markdownlint-cli2 "projects/solar_circuit/**/*.md"
+
+    #--------------------------------------------------------------
+    - name: 📑  Check Work-Order report (main only)
+      if: |
+        github.ref == 'refs/heads/main' && env.WO_ID != ''
+      run: |
+        REPORT="projects/solar_circuit/workorders/reports/${WO_ID}_report.md"
+        echo "Expecting report: $REPORT"
+        if [ ! -f "$REPORT" ]; then
+          echo "❌ Error: Work-Order report not found."; exit 1
+        fi
+        echo "✅ Report exists."
