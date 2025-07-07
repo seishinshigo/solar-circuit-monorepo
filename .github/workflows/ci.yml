@@ -48,8 +48,14 @@ jobs:
         echo "::notice title=WO_ID::$WO_ID"
 
     #--------------------------------------------------------------
-    - name: 🧪  Run tests
-      run: pytest -q
+    - name: 🧪 Run tests & coverage
+      run: pytest
+
+    #--------------------------------------------------------------
+    - name: 📊 Upload coverage to artifact (badge)
+      run: |
+        coverage xml
+        cp coverage.xml ${{ github.workspace }}
 
     #--------------------------------------------------------------
     - name: 🟦 Set up Node

@@ -1,5 +1,6 @@
 default: true
 MD013: false       # 行長チェック無効
+MD033: false       # インラインHTML許容
 MD040: false       # コードブロック言語指定無効
 MD022: false
 MD047: false

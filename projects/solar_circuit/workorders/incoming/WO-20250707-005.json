@@ -1,0 +1,15 @@
+{
+  "id": "WO-20250707-005",
+  "title": "Week 0 テスト環境とカバレッジ整備",
+  "kind": "task",
+  "phase": "coding",
+  "rules": ["docs/solar_circuit/RULES.md"],
+  "related_docs": [
+    "docs/solar_circuit/01_plan_solo_edition.md",
+    "docs/solar_circuit/02_context_engineering.md",
+    "collaboration/design_docs/001_Week0_Improvements_plan.md"
+  ],
+  "examples": [],
+  "success_cmd": "pytest",
+  "deadline": "2025-07-14"
+}
