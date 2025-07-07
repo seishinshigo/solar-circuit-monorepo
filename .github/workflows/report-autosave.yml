@@ -1,63 +1,55 @@
 name: autosave-report
 
-# ────────────────────────────────────────────────
-# ① main への push / ② PR 上で solar-circuit-ci 成功後
-#    の両方でレポートチェック & 自動保存
-# ────────────────────────────────────────────────
 on:
   push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
-  workflow_run:
-    workflows: ["solar-circuit-ci"]
-    types: [completed]
+    branches:
+      - main
+    paths:
+      - 'projects/solar_circuit/workorders/incoming/**.json'
+      - 'projects/solar_circuit/templates/**.md'
 
 jobs:
   ensure-report:
-    if: |
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
-      (github.event_name != 'workflow_run')
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projects/solar_circuit
 
     steps:
-      - name: 📥 Checkout HEAD
+      - name: Checkout HEAD
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_branch || github.head_ref || github.ref_name }}
 
-      # 依存パッケージ（Gemini CLI など）
-      - name: 🐍 Set up Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-      - run: pip install -r projects/solar_circuit/requirements-dev.txt
+          python-version: '3.12'
 
-      # 変更ファイル検出
-      - name: 🔍 Changed files
-        id: changed
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -e .
+
+      - name: Changed files
+        id: changes
         uses: tj-actions/changed-files@v44
-        with:
-          files: |
-            projects/solar_circuit/workorders/reports/*_report.md
-            projects/solar_circuit/workorders/incoming/*.json
 
-      # Work-Order ID を推測（reports に差分が無い場合のみ）
-      - name: 🧮 Detect WO_ID
+      - name: Detect WO_ID
         id: detect
-        if: steps.changed.outputs.any_changed == 'false'
         run: |
-          WO=$(git diff --name-only HEAD~1 HEAD \
-               | grep -oE 'wo-[0-9]{8}-[0-9]{3}' | head -n1) || true
-          echo "WO_ID=$WO" >> $GITHUB_OUTPUT
+          echo "WO_ID=$(echo '${{ steps.changes.outputs.all_changed_files }}' | grep -o 'WO-[0-9]\{8\}-[0-9]\{3\}' | head -1)" >> "$GITHUB_OUTPUT"
 
-      # report save を実行
-      - name: 📝 Generate & save report
-        if: steps.detect.outputs.WO_ID != ''
+      - name: Generate & save report
         run: |
-          sc report save "${{ steps.detect.outputs.WO_ID }}" README.md  # ← ダミー入力
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add projects/solar_circuit/workorders/reports/${{ steps.detect.outputs.WO_ID }}_report.md
-          git commit -m "chore(report): autosave ${{ steps.detect.outputs.WO_ID }}"
+          echo "# 自動生成されたレポート" > workorders/reports/${{ steps.detect.outputs.WO_ID }}_report.md
+          echo "" >> workorders/reports/${{ steps.detect.outputs.WO_ID }}_report.md
+          echo "- ワークオーダー ID: ${{ steps.detect.outputs.WO_ID }}" >> workorders/reports/${{ steps.detect.outputs.WO_ID }}_report.md
+          echo "- 生成日時: $(date -u)" >> workorders/reports/${{ steps.detect.outputs.WO_ID }}_report.md
+
+      - name: Commit & push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add workorders/reports/${{ steps.detect.outputs.WO_ID }}_report.md
+          git commit -m "chore(report): autosave report for ${{ steps.detect.outputs.WO_ID }}"
           git push
