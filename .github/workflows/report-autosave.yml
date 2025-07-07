@@ -30,26 +30,34 @@ jobs:
           pip install -r requirements-dev.txt
           pip install -e .
 
-      - name: Changed files
-        id: changes
+      - name: List changed files
+        id: changed-files
         uses: tj-actions/changed-files@v44
+        with:
+          files: projects/solar_circuit/workorders/incoming/**.json
 
-      - name: Detect WO_ID
-        id: detect
+      - name: Generate report for each new workorder
+        env:
+          SC_REPORT_COMMAND: "sc report save"
         run: |
-          echo "WO_ID=$(echo '${{ steps.changes.outputs.all_changed_files }}' | grep -o 'WO-[0-9]\{8\}-[0-9]\{3\}' | head -1)" >> "$GITHUB_OUTPUT"
+          for file in ${{ steps.changed-files.outputs.added_files }}; do
+            if [[ $file =~ (WO-[0-9]{8}-[0-9]{3})\.json$ ]]; then
+              WO_ID=${BASH_REMATCH[1]}
+              echo "--- Generating report for ${WO_ID} ---"
+              ${SC_REPORT_COMMAND} ${WO_ID}
+            fi
+          done
 
-      - name: Generate & save report
+      - name: Commit & push reports
         run: |
-          echo "# 自動生成されたレポート" > workorders/reports/${{ steps.detect.outputs.WO_ID }}_report.md
-          echo "" >> workorders/reports/${{ steps.detect.outputs.WO_ID }}_report.md
-          echo "- ワークオーダー ID: ${{ steps.detect.outputs.WO_ID }}" >> workorders/reports/${{ steps.detect.outputs.WO_ID }}_report.md
-          echo "- 生成日時: $(date -u)" >> workorders/reports/${{ steps.detect.outputs.WO_ID }}_report.md
-
-      - name: Commit & push
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add workorders/reports/${{ steps.detect.outputs.WO_ID }}_report.md
-          git commit -m "chore(report): autosave report for ${{ steps.detect.outputs.WO_ID }}"
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git status --porcelain | grep 'workorders/reports/.*\.md' | awk '{print $2}' | xargs -I {} git add {}
+          
+          if git diff --staged --quiet; then
+            echo "No new reports to commit."
+            exit 0
+          fi
+          
+          git commit -m "chore(report): autosave generated reports"
           git push
