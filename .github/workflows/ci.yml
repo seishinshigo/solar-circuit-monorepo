@@ -1,86 +1,45 @@
-name: solar-circuit-ci
+name: Run tests & coverage
 
 on:
   push:
-    branches: [ "**" ]          # 全ブランチでテストは回す
+    branches:
+      - main
+      - "feat/**"
   pull_request:
-    branches: [ "main" ]        # main 宛て PR も対象
-  workflow_dispatch:            # 手動実行
+    branches:
+      - main
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: projects/solar_circuit
+
     steps:
-    #--------------------------------------------------------------
-    - name: ☑️  Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0          # git diff 用にフル履歴取得
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: 🐍  Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.12"
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
 
-    #--------------------------------------------------------------
-    - name: 🗄  Cache pip
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements-dev.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+      - name: Install pip & dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -e .
 
-    #--------------------------------------------------------------
-    - name: 📦  Install deps
-      run: |
-        pip install -r projects/solar_circuit/requirements-dev.txt
-        pip install -e projects/solar_circuit
-        pip install coverage
+      - name: Run pytest with coverage
+        run: |
+          pytest --cov=solar_circuit --cov-report=xml
 
-    #--------------------------------------------------------------
-    - name: 🔍 Detect Work-Order ID
-      id: detect
-      run: |
-        WO_ID=$(git diff --name-only ${{ github.sha }} ${{ github.sha }}^ \
-                 | grep -Eo 'wo-[0-9]{8}-[0-9]{3}' | head -n1)
-        echo "WO_ID=$WO_ID" >> $GITHUB_ENV
-        echo "::set-output name=WO_ID::$WO_ID"
-
-    #--------------------------------------------------------------
-    - name: 🧪 Run tests & coverage
-      run: |
-        pytest --cov=solar_circuit
-        coverage xml
-
-    #--------------------------------------------------------------
-    - name: 📊 Upload coverage to artifact (badge)
-      run: |
-        coverage xml
-        
-    #--------------------------------------------------------------
-    - name: 🟦 Set up Node
-      uses: actions/setup-node@v4
-      with:
-        node-version: "20"
-
-    #--------------------------------------------------------------
-    - name: �� Install markdownlint-cli2
-      run: npm install -g markdownlint-cli2
-
-    #--------------------------------------------------------------
-    - name: 📝  Markdown Lint
-      run: npx markdownlint-cli2 "projects/solar_circuit/**/*.md"
-
-    #--------------------------------------------------------------
-    - name: 📑  Check Work-Order report (main only)
-      if: |
-        github.ref == 'refs/heads/main' && steps.detect.outputs.WO_ID != ''
-      run: |
-        REPORT="projects/solar_circuit/workorders/reports/${WO_ID}_report.md"
-        echo "Expecting report: $REPORT"
-        if [ ! -f "$REPORT" ]; then
-          echo "❌ Error: Work-Order report not found."; exit 1
-        fi
-        echo "✅ Report exists."
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-coverage

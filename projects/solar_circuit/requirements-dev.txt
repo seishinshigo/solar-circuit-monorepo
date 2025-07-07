@@ -6,4 +6,3 @@ uvicorn
 pytest-asyncio
 jsonschema
 pytest-cov
-coverage
