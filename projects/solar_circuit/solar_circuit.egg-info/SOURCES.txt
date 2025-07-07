@@ -7,4 +7,8 @@ solar_circuit.egg-info/dependency_links.txt
 solar_circuit.egg-info/entry_points.txt
 solar_circuit.egg-info/requires.txt
 solar_circuit.egg-info/top_level.txt
+solar_circuit/orchestrator/__init__.py
+solar_circuit/orchestrator/main.py
 tests/test_bootstrap.py
+tests/test_cli.py
+tests/test_orchestrator.py

@@ -1,0 +1,13 @@
+* [33m6b2fafc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m docs(report): add WO-20240710-005 report
+* [33m2164c4b[m ci: autosave-report & markdown lint baseline (#2)
+*   [33m1b7363b[m Merge pull request #1 from seishinshigo/feat/ci-report-check
+[32m|[m[33m\[m  
+[32m|[m * [33mae4c4b4[m fix(cli): make hello positional arg with typer.Argument
+[32m|[m * [33mc1491d4[m feat(ci): implement report existence check\n\n- Add CI step to extract Work-Order ID from diff\n- Add CI step to check for corresponding report file\n- Remove .gitkeep from workorders/reports\n- Update README and docs with new CI rule and examples
+[32m|[m * [33m7019c98[m[33m ([m[1;31morigin/feat/report-autosave[m[33m, [m[1;32mfeat/report-autosave[m[33m)[m feat(report): implement report autosave flow\n\n- Add save_report.sh script\n- Implement sc report save CLI command\n- Add pre-commit hook for report existence check\n- Add CI check for report files\n- Add markdownlint-cli2 and CI lint step\n- Update docs with report save flow
+[32m|[m * [33mc7256fc[m[33m ([m[1;31morigin/feat/report-naming-and-cleanup[m[33m, [m[1;32mfeat/report-naming-and-cleanup[m[33m)[m chore(report): establish naming convention and document\n\n- Rename wo-20240710-002_report_with_automation_proposal.md to wo-20240710-001_report.md\n- Document naming convention in docs/solar_circuit/03_dev_setup.md
+[32m|[m * [33m27db98b[m[33m ([m[1;31morigin/feat/minor-feedback[m[33m, [m[1;32mfeat/minor-feedback[m[33m)[m chore(orchestrator): minor feedback and report readability improvements\n\n- Add Japanese docstring to test_orchestrator.py\n- Add actions/cache@v4 to ci.yml\n- Add local startup instructions to README.md\n- Rewrite wo-20240710-001_report.md for readability
+[32m|[m * [33m0c63e6a[m[33m ([m[1;31morigin/feat/orchestrator-skeleton[m[33m, [m[1;32mfeat/orchestrator-skeleton[m[33m)[m feat: add workorder wo-20240710-001
+[32m|[m * [33me51dc17[m chore: add directory skeleton for workorders, rounds, logs, collaboration
+[32m|[m[32m/[m  
+* [33m293b672[m feat: bootstrap Solar Circuit CLI & initial docs
