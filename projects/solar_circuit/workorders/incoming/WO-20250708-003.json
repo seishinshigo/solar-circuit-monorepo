@@ -1,0 +1,18 @@
+{
+  "id": "WO-20250708-003",
+  "title": "作業報告書テンプレートの改善とテンプレート展開処理の実装",
+  "description": "現在、作業報告書（WO-xxxx_report.md）の提出において、テンプレートファイル（report_template.md）が正しく活用されていないため、Gemini CLIの自動生成対象として機能させる仕組みを整備する。\n\n具体的には以下の処理を行う：\n1. report_template.md に必要なプレースホルダを定義（例：{{ title }}、{{ summary }}、{{ log }} 等）\n2. 作業依頼書（.json）を元に、このテンプレートを自動展開し、作業報告書（WO-xxxx_report.md）を作成する\n3. autosave報告ワークフローの対象として、報告書提出のトリガーにも適用可能にする\n\n上記は、Git連携・CI/CD自動処理の一部としても連携を予定している。",
+  "steps": [
+    "1. report_template.md に必要なプレースホルダを定義（例：{{ title }}、{{ summary }}、{{ log }} 等）",
+    "2. 作業依頼書（.json）を元に、このテンプレートを自動展開し、作業報告書（WO-xxxx.md）を作成する",
+    "3. autosave報告ワークフローの対象として、報告書提出のトリガーにも適用可能にする"
+  ],
+  "expected_output": [
+    "report_template.md にプレースホルダが定義されていること",
+    "作業依頼書（.json）を元に、テンプレートが自動展開され、作業報告書（WO-xxxx.md）が作成されること",
+    "autosave報告ワークフローの対象として、報告書提出のトリガーにも適用可能であること"
+  ],
+  "tags": ["autosave", "report", "template", "gemini_cli"],
+  "priority": "high",
+  "assigned_to": "Gemini_CLI"
+}

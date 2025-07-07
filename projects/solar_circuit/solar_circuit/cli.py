@@ -76,6 +76,14 @@ def create_report(
     id: str = typer.Argument(..., help="Work-Order ID (wo-YYYYMMDD-XXX)"),
 ):
     """指定された Work-Order ID のレポートスケルトンを生成"""
+    workorder_path = Path(f"workorders/incoming/{id}.json")
+    if not workorder_path.exists():
+        typer.echo(f"❌ Work-Order JSON not found: {workorder_path}")
+        raise typer.Exit(code=1)
+
+    with open(workorder_path, "r") as f:
+        workorder_data = json.load(f)
+
     template_path = Path("templates/report_template.md")
     report_dir = Path("workorders/reports")
     report_dir.mkdir(parents=True, exist_ok=True)
@@ -86,9 +94,18 @@ def create_report(
         raise typer.Exit(code=1)
 
     template_content = template_path.read_text()
-    # WO_ID をテンプレートに埋め込む
-    filled_content = template_content.replace("[WO-YYYYMMDD-XXX]", id)
-    filled_content = filled_content.replace("[ワークオーダーのタイトル]", f"Work Order {id}") # 仮のタイトル
+
+    # プレースホルダの置換
+    filled_content = template_content
+    filled_content = filled_content.replace("{{ workorder.id }}", workorder_data.get("id", id))
+    filled_content = filled_content.replace("{{ workorder.title }}", workorder_data.get("title", f"Work Order {id}"))
+    filled_content = filled_content.replace("{{ workorder.metadata.related_docs | default('なし') }}", workorder_data.get("metadata", {}).get("related_docs", "なし"))
+
+    steps_formatted = "\n".join([f"- {step}" for step in workorder_data.get("steps", [])])
+    filled_content = filled_content.replace("{{ workorder.steps_formatted }}", steps_formatted)
+
+    expected_output_formatted = "\n".join([f"- [ ] {output}" for output in workorder_data.get("expected_output", [])])
+    filled_content = filled_content.replace("{{ workorder.expected_output_formatted }}", expected_output_formatted)
 
     report_path.write_text(filled_content)
     typer.echo(f"✅ Report skeleton created at {report_path}")
