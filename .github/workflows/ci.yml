@@ -37,6 +37,7 @@ jobs:
       run: |
         pip install -r projects/solar_circuit/requirements-dev.txt
         pip install -e projects/solar_circuit
+        pip install coverage
 
     #--------------------------------------------------------------
     - name: 🔍 Detect Work-Order ID
@@ -45,7 +46,7 @@ jobs:
         WO_ID=$(git diff --name-only ${{ github.sha }} ${{ github.sha }}^ \
                  | grep -Eo 'wo-[0-9]{8}-[0-9]{3}' | head -n1)
         echo "WO_ID=$WO_ID" >> $GITHUB_ENV
-        echo "::notice title=WO_ID::$WO_ID"
+        echo "::set-output name=WO_ID::$WO_ID"
 
     #--------------------------------------------------------------
     - name: 🧪 Run tests & coverage
@@ -74,7 +75,7 @@ jobs:
     #--------------------------------------------------------------
     - name: 📑  Check Work-Order report (main only)
       if: |
-        github.ref == 'refs/heads/main' && env.WO_ID != ''
+        github.ref == 'refs/heads/main' && steps.detect.outputs.WO_ID != ''
       run: |
         REPORT="projects/solar_circuit/workorders/reports/${WO_ID}_report.md"
         echo "Expecting report: $REPORT"
