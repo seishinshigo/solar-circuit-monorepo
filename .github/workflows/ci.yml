@@ -58,8 +58,7 @@ jobs:
     - name: 📊 Upload coverage to artifact (badge)
       run: |
         coverage xml
-        cp coverage.xml ${{ github.workspace }}
-
+        
     #--------------------------------------------------------------
     - name: 🟦 Set up Node
       uses: actions/setup-node@v4
