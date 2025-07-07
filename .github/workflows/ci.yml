@@ -51,8 +51,7 @@ jobs:
     #--------------------------------------------------------------
     - name: 🧪 Run tests & coverage
       run: |
-        pytest --cov=solar_circuit
-        coverage xml
+        pytest projects/solar_circuit --cov=projects/solar_circuit --cov-report=xml
 
     #--------------------------------------------------------------
     - name: 📊 Upload coverage to artifact (badge)
