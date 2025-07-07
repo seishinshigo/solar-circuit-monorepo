@@ -1,0 +1,22 @@
+{
+  "work_order_id": "WO-20250708-001",
+  "title": "autosave-report ワークフローの環境変数整理と安定化",
+  "goal": "ワークフロー実行中のエラーを防ぐため、autosave-report の環境変数まわりの依存と定義の整理を行う",
+  "priority": "high",
+  "milestone": "v1.1",
+  "tasks": [
+    "report-autosave.yml で使用されている SC_REPORT_COMMAND の明確な定義・注入方法を確認・修正する",
+    "必要に応じて .github/workflows/ci.yml との関係性も調整する",
+    "README.md もしくは該当テンプレートに自動保存の仕様と使用条件を明記する",
+    "CIでエラーとなっていた 'sc: command not found' 問題の原因を調査し、再発防止策を導入する（例: fallback, インストール手順、条件分岐）",
+    "必要があれば report save コマンドのオプション拡張やエラー表示改善も視野に入れる"
+  ],
+  "files_related": [
+    ".github/workflows/report-autosave.yml",
+    ".github/workflows/ci.yml",
+    "projects/solar_circuit/cli/report.py",
+    "projects/solar_circuit/tests/test_cli_report.py",
+    "projects/solar_circuit/templates/report_template.md",
+    "README.md"
+  ]
+}
