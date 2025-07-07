@@ -8,7 +8,6 @@ Bootstrap project.
 
 [ソロ開発エディション開発計画書](01_plan_solo_edition.md)
 
-
 ## ローカル起動方法
 
 FastAPI アプリケーションをローカルで起動するには、以下のコマンドを使用します。
