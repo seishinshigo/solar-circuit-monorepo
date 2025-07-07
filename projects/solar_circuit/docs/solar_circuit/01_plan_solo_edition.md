@@ -113,5 +113,9 @@ CI テンプレは資料 01 に従う fileciteturn3file17。
 
 ---
 
+* [Context Engineering ガイド](02_context_engineering.md)
+
+---
+
 > **更新履歴**
 > 2025‑07‑07 v1.0 初版作成
