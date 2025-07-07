@@ -4,42 +4,41 @@ on:
   push:
     branches:
       - main
+      - "feat/**"
   pull_request:
-
-env:
-  WO_ID: "WO-20250707-006"  # グローバル環境変数として定義
+    branches:
+      - main
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: projects/solar_circuit
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
-      - name: Install Poetry
+      - name: Install pip & dependencies
         run: |
-          pip install poetry
-
-      - name: Install dependencies
-        run: |
-          poetry install
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
 
       - name: Run pytest with coverage
         run: |
-          poetry run pytest projects/solar_circuit \
-            --cov=projects/solar_circuit \
-            --cov-report=xml
+          pytest --cov=solar_circuit --cov-report=xml
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
-          name: ${{ env.WO_ID }}
-          verbose: true
+          flags: unittests
+          name: codecov-coverage
