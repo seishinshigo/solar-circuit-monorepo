@@ -1,6 +1,7 @@
 # Solar Circuit
 
 [![solar-circuit-ci](https://github.com/seishinshigo/solar-circuit-monorepo/actions/workflows/ci.yml/badge.svg)](https://github.com/seishinshigo/solar-circuit-monorepo/actions/workflows/ci.yml)
+[![coverage](https://img.shields.io/badge/coverage-88%25-brightgreen)](https://github.com/seishinshigo/solar-circuit-monorepo/actions/workflows/ci.yml)
 
 Bootstrap project.
 
@@ -53,3 +54,7 @@ Work-Order report for wo-20240710-001 found.
 ```
 Error: Missing Work-Order report for wo-20240710-001. Expected at projects/solar_circuit/workorders/reports/wo-20240710-001_report.md
 ```
+
+## 作業報告書テンプレート
+
+作業報告書は `projects/solar_circuit/templates/report_template.md` をベースに作成してください。このテンプレートは、報告書の標準的な構成と品質基準を提供します。
