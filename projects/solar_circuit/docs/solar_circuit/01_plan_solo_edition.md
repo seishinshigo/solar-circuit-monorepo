@@ -3,8 +3,6 @@ title: ソロ開発エディション開発計画書
 version: "1.0"
 updated: 2025-07-07
 ---
-<<<<<<< HEAD
-=======
 # ソーラーサーキット “ソロ開発エディション” 開発計画書 v1.0 (2025‑07‑07)
 
 ---
@@ -56,17 +54,20 @@ Blue Print で示された M0–M6 の段階的構築モデルを、**個人開
 * `uvicorn` 起動 & curl で手動テスト
 * pytest: `/workorders` 正常系 + 異常系 1 件
 
+
 ### 5.2 Week 3‑4: Plugin SDK & Schema v1.1
 
 * `shared_libs/schemas/gemini.workorder@1.json` 更新 (phase\_timeout / agents 追加) fileciteturn3file3
 * `workers/default/handler.py` に echo 実装 (`@hook handle(order)`) fileciteturn3file4
 * `sc commit` を httpx 経由で Orchestrator POST に置換
 
+
 ### 5.3 Week 5‑6: Compose & Metrics
 
 * `docker-compose.yml`: orchestrator, worker, prometheus, minio
 * Orchestrator に `round_total` & `token_usage_total` Counter 追加 (Prom client)
 * README に `docker compose up` 手順追記
+
 
 ## 6️⃣ 技術スタック
 
