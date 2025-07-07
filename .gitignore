@@ -12,3 +12,7 @@ coverage_html/
 *.swp
 # setuptools metadata
 *.egg-info/
+# Python cache
+__pycache__/
+*.py[cod]
+.env
