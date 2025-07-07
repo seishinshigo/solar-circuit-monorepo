@@ -5,7 +5,8 @@
 Bootstrap project.
 
 ## 関連ドキュメント
-- [ソロ開発エディション開発計画書](01_plan_solo_edition.md)
+
+[ソロ開発エディション開発計画書](01_plan_solo_edition.md)
 
 
 ## ローカル起動方法
