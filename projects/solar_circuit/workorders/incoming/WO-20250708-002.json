@@ -1,0 +1,23 @@
+{
+  "id": "WO-20250708-002",
+  "title": "autosave-report ワークフローにおける環境変数と報告書テンプレートの整備",
+  "description": "GitHub Actions ワークフロー autosave-report.yml の環境変数を安定化させると同時に、報告書生成の標準化に向けてテンプレートファイル (report_template.md) を活用し、Gemini CLI が迷わず作業報告を提出できるように整備してください。",
+  "steps": [
+    "1. `.github/workflows/report-autosave.yml` における環境変数の参照方法（特に SC_REPORT_COMMAND など）を再確認し、必要に応じて修正する。",
+    "2. `projects/solar_circuit/templates/report_template.md` をもとに、Gemini CLI が使用できる報告書スケルトンを生成・出力できるように支援する。",
+    "3. README.md に報告書の作成・提出手順と、テンプレートファイルの使い方を簡潔に記載する。",
+    "4. 実際のテスト作業を行い、WO-20250708-002_report.md が正しく生成され、CIで認識されることを確認する。"
+  ],
+  "expected_output": [
+    ".github/workflows/report-autosave.yml の環境変数の誤解や重複の排除",
+    "projects/solar_circuit/templates/report_template.md に準拠した形式での報告書提出",
+    "README.md に記載された報告書提出フロー",
+    "projects/solar_circuit/workorders/reports/WO-20250708-002_report.md の生成"
+  ],
+  "metadata": {
+    "priority": "high",
+    "issued_by": "user",
+    "created": "2025-07-08",
+    "stage": "open"
+  }
+}

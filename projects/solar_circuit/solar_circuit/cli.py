@@ -71,6 +71,29 @@ def _validate_json(file: Path, schema_path: Path):
 # ╰────────────────────────────────────────────────────────────────────╯
 
 
+@report_app.command("create")
+def create_report(
+    id: str = typer.Argument(..., help="Work-Order ID (wo-YYYYMMDD-XXX)"),
+):
+    """指定された Work-Order ID のレポートスケルトンを生成"""
+    template_path = Path("templates/report_template.md")
+    report_dir = Path("workorders/reports")
+    report_dir.mkdir(parents=True, exist_ok=True)
+    report_path = report_dir / f"{id}_report.md"
+
+    if report_path.exists():
+        typer.echo(f"⚠️ Report already exists: {report_path}")
+        raise typer.Exit(code=1)
+
+    template_content = template_path.read_text()
+    # WO_ID をテンプレートに埋め込む
+    filled_content = template_content.replace("[WO-YYYYMMDD-XXX]", id)
+    filled_content = filled_content.replace("[ワークオーダーのタイトル]", f"Work Order {id}") # 仮のタイトル
+
+    report_path.write_text(filled_content)
+    typer.echo(f"✅ Report skeleton created at {report_path}")
+
+
 # ╭────────────────────────── report save ───────────────────────────╮
 @report_app.command("save")
 def save(

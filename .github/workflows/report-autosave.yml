@@ -43,8 +43,11 @@ jobs:
           for file in ${{ steps.changed-files.outputs.added_files }}; do
             if [[ $file =~ (WO-[0-9]{8}-[0-9]{3})\.json$ ]]; then
               WO_ID=${BASH_REMATCH[1]}
+              REPORT_FILE="projects/solar_circuit/workorders/reports/${WO_ID}_report.md"
               echo "--- Generating report for ${WO_ID} ---"
-              ${SC_REPORT_COMMAND} ${WO_ID}
+              # 一時的なレポートファイルを作成し、sc report save に渡す
+              echo "# Report for ${WO_ID}" > "${REPORT_FILE}"
+              ${SC_REPORT_COMMAND} ${WO_ID} "${REPORT_FILE}"
             fi
           done
 
