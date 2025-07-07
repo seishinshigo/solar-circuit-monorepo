@@ -24,8 +24,6 @@ uvicorn solar_circuit.orchestrator.main:app --reload
 
 ```bash
 python -m solar_circuit.cli report save <WorkOrder ID> <レポートファイルのパス>
-# 例:
-# python -m solar_circuit.cli report save wo-20240710-001 path/to/your/report.md
 ```
 
 ## Git フックの有効化

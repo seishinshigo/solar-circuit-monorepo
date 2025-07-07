@@ -4,6 +4,8 @@ version: "1.0"
 updated: 2025-07-07
 ---
 
+>>>>>>> 1a11c95 (docs: add solo development plan v1.0 (WO-20250707-002))
+
 ## 1️⃣ 目的と背景
 
 Blue Print で示された M0–M6 の段階的構築モデルを、**個人開発でも無理なく完走できる 8 週間ロードマップ**に落とし込む。クラウド常駐を前提とした K8s/Linkerd/NATS などの重装備は後回しにし、まずは *ローカル + Docker Compose* で完結する最小構成を確立する。fileciteturn3file0
@@ -109,5 +111,9 @@ CI テンプレは資料 01 に従う fileciteturn3file17。
 
 ---
 
-> **更新履歴**
+* [Context Engineering ガイド](02_context_engineering.md)
+
+---
+
+> ## 更新履歴
 > 2025‑07‑07 v1.0 初版作成
