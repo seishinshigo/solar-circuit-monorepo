@@ -71,7 +71,22 @@ def load_workorder(work_id: str) -> dict:
     if not path.exists():
         raise FileNotFoundError(f"ワークオーダーファイルが見つかりません: {path}")
     with open(path, encoding="utf-8") as f:
-        return json.load(f)
+        workorder_data = json.load(f)
+
+    # 関連ドキュメントの内容を読み込み、workorder_dataに追加
+    related_docs_path = workorder_data.get("file_path") or workorder_data.get("metadata", {}).get("related_docs")
+    if related_docs_path:
+        full_related_docs_path = PROJECT_ROOT / related_docs_path # プロジェクトルートからパスを解決
+        if full_related_docs_path.exists():
+            with open(full_related_docs_path, encoding="utf-8") as f:
+                workorder_data["summary_content"] = f.read()
+        else:
+            logger.warning(f"関連ドキュメントが見つかりません: {full_related_docs_path}")
+            workorder_data["summary_content"] = ""
+    else:
+        workorder_data["summary_content"] = ""
+
+    return workorder_data
 
 
 def extract_template_from_file(template_path: Path) -> str:

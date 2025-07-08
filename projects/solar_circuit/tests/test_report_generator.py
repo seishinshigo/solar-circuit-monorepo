@@ -14,7 +14,7 @@ SCRIPT_DIR = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.append(str(SCRIPT_DIR))
 
 # `report_generator` モジュールから必要な関数や定数をインポート
-from report_generator import (
+from solar_circuit.report_generator import (
     determine_mode,
     extract_template_from_file,
     load_workorder,
@@ -52,11 +52,18 @@ def mock_workorder(temp_project_dir):
         "title": "テスト作業",
         "metadata": {"related_docs": "docs/test.md"},
         "steps_formatted": "- ステップ1\n- ステップ2",
-        "expected_output_formatted": "- [x] 完了条件A"
+        "expected_output_formatted": "- [x] 完了条件A",
+        "file_path": "collaboration/design_docs/test_summary.md" # テスト用にfile_pathを追加
     }
     # `json.dump` を使って辞書をJSONファイルとして書き込む
     with open(wo_path, "w", encoding="utf-8") as f:
         json.dump(wo_data, f, ensure_ascii=False, indent=2)
+
+    # 関連ドキュメントのモックを作成
+    related_doc_path = temp_project_dir / "collaboration" / "design_docs" / "test_summary.md"
+    related_doc_path.parent.mkdir(parents=True, exist_ok=True)
+    related_doc_path.write_text("# テストサマリー\nこれはテスト用のサマリーコンテンツです。", encoding="utf-8")
+
     return wo_data
 
 @pytest.fixture
@@ -80,13 +87,13 @@ def mock_template(temp_project_dir):
 def test_load_workorder_success(mock_workorder, temp_project_dir):
     """ワークオーダーの読み込みが成功するケース"""
     # `patch` を使って `PROJECT_ROOT` の値を一時的なディレクトリに差し替える
-    with patch("report_generator.PROJECT_ROOT", temp_project_dir):
+    with patch("solar_circuit.report_generator.PROJECT_ROOT", temp_project_dir):
         wo = load_workorder("20250709-001")
         assert wo["title"] == "テスト作業"
 
 def test_load_workorder_not_found(temp_project_dir):
     """ワークオーダーファイルが見つからない場合に `FileNotFoundError` が発生するケース"""
-    with patch("report_generator.PROJECT_ROOT", temp_project_dir):
+    with patch("solar_circuit.report_generator.PROJECT_ROOT", temp_project_dir):
         with pytest.raises(FileNotFoundError):
             load_workorder("non-existent-id")
 
@@ -118,6 +125,13 @@ def test_render_template_with_undefined_vars():
     wo_data = {"title": "レンダリングテスト"}
     rendered = render_template(template_str, wo_data)
     assert rendered == "タイトル: レンダリングテスト, 未定義: "
+
+def test_render_template_with_summary_content():
+    """Jinja2テンプレートにサマリーコンテンツが正しくレンダリングされるケース"""
+    template_str = "概要: {{ workorder.summary_content }}"
+    wo_data = {"summary_content": "これはサマリーです。"}
+    rendered = render_template(template_str, wo_data)
+    assert rendered == "概要: これはサマリーです。"
 
 # --- モード判定のテスト ---
 
@@ -206,7 +220,7 @@ def test_write_report_recover(temp_project_dir):
 @patch("sys.argv", ["report_generator.py", "--work-id", "20250709-001"])
 def test_main_flow_new(mock_workorder, mock_template, temp_project_dir):
     """E2Eテスト: 新規作成フロー"""
-    with patch("report_generator.PROJECT_ROOT", temp_project_dir):
+    with patch("solar_circuit.report_generator.PROJECT_ROOT", temp_project_dir):
         main()
         report_path = temp_project_dir / "workorders" / "reports" / "WO-20250709-001_report.md"
         assert report_path.exists()
@@ -219,20 +233,20 @@ def test_main_flow_force_overwrite(mock_workorder, mock_template, temp_project_d
     report_path = temp_project_dir / "workorders" / "reports" / "WO-20250709-001_report.md"
     report_path.write_text("古いコンテンツ", encoding="utf-8")
     
-    with patch("report_generator.PROJECT_ROOT", temp_project_dir):
+    with patch("solar_circuit.report_generator.PROJECT_ROOT", temp_project_dir):
         main()
         content = report_path.read_text(encoding="utf-8")
         assert "テスト作業" in content
         assert "古いコンテンツ" not in content
 
-@patch("report_generator.FORCE_OVERWRITE_ENV", True)
+@patch("solar_circuit.report_generator.FORCE_OVERWRITE_ENV", True)
 @patch("sys.argv", ["report_generator.py", "--work-id", "20250709-001"])
 def test_main_flow_force_overwrite_env(mock_workorder, mock_template, temp_project_dir):
     """E2Eテスト: 環境変数による強制上書きフロー"""
     report_path = temp_project_dir / "workorders" / "reports" / "WO-20250709-001_report.md"
     report_path.write_text("古いコンテンツ", encoding="utf-8")
     
-    with patch("report_generator.PROJECT_ROOT", temp_project_dir):
+    with patch("solar_circuit.report_generator.PROJECT_ROOT", temp_project_dir):
         main()
         content = report_path.read_text(encoding="utf-8")
         assert "テスト作業" in content

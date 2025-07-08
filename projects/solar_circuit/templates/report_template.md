@@ -13,6 +13,8 @@
 
 実施した作業の詳細を記述します。具体的な手順、変更点、実装上の工夫などを分かりやすく説明します。
 
+{{ workorder.summary_content }}
+
 ### 2.1. ワークオーダーのステップ
 
 {{ workorder.steps_formatted }}
