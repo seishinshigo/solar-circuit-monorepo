@@ -42,6 +42,7 @@ jobs:
 
       - name: Run pytest
         run: |
+          export PYTHONPATH=projects/solar_circuit
           pytest --tb=short --disable-warnings --maxfail=3
 
       - name: Commit & push reports
