@@ -219,6 +219,15 @@ def test_write_report_recover(temp_project_dir):
 
 @patch("sys.argv", ["report_generator.py", "--work-id", "20250709-001"])
 def test_main_flow_new(mock_workorder, mock_template, temp_project_dir):
+    # テンプレート作成（強制）
+    template_dir = temp_project_dir / "templates"
+    template_dir.mkdir(exist_ok=True)
+    template_path = template_dir / "report_template.md"
+    template_path.write_text(
+        "<!-- TEMPLATE_START -->\n# タイトル: {{ workorder.title }}\n<!-- TEMPLATE_END -->",
+        encoding="utf-8"
+    )
+
     with patch("solar_circuit.report_generator.PROJECT_ROOT", temp_project_dir):
         main()
         report_path = temp_project_dir / "workorders" / "reports" / "WO-20250709-001_report.md"
@@ -233,6 +242,14 @@ def test_main_flow_force_overwrite(mock_workorder, mock_template, temp_project_d
     report_path = temp_project_dir / "workorders" / "reports" / "WO-20250709-001_report.md"
     report_path.write_text("古いコンテンツ", encoding="utf-8")
 
+    template_dir = temp_project_dir / "templates"
+    template_dir.mkdir(exist_ok=True)
+    template_path = template_dir / "report_template.md"
+    template_path.write_text(
+        "<!-- TEMPLATE_START -->\n# タイトル: {{ workorder.title }}\n<!-- TEMPLATE_END -->",
+        encoding="utf-8"
+    )
+
     with patch("solar_circuit.report_generator.PROJECT_ROOT", temp_project_dir):
         main()
         content = report_path.read_text(encoding="utf-8")
@@ -246,6 +263,14 @@ def test_main_flow_force_overwrite(mock_workorder, mock_template, temp_project_d
 def test_main_flow_force_overwrite_env(mock_workorder, mock_template, temp_project_dir):
     report_path = temp_project_dir / "workorders" / "reports" / "WO-20250709-001_report.md"
     report_path.write_text("古いコンテンツ", encoding="utf-8")
+
+    template_dir = temp_project_dir / "templates"
+    template_dir.mkdir(exist_ok=True)
+    template_path = template_dir / "report_template.md"
+    template_path.write_text(
+        "<!-- TEMPLATE_START -->\n# タイトル: {{ workorder.title }}\n<!-- TEMPLATE_END -->",
+        encoding="utf-8"
+    )
 
     with patch("solar_circuit.report_generator.PROJECT_ROOT", temp_project_dir):
         main()
