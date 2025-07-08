@@ -219,35 +219,37 @@ def test_write_report_recover(temp_project_dir):
 
 @patch("sys.argv", ["report_generator.py", "--work-id", "20250709-001"])
 def test_main_flow_new(mock_workorder, mock_template, temp_project_dir):
-    """E2Eテスト: 新規作成フロー"""
     with patch("solar_circuit.report_generator.PROJECT_ROOT", temp_project_dir):
         main()
         report_path = temp_project_dir / "workorders" / "reports" / "WO-20250709-001_report.md"
         assert report_path.exists()
         content = report_path.read_text(encoding="utf-8")
+        assert "タイトル" in content
         assert "テスト作業" in content
+
 
 @patch("sys.argv", ["report_generator.py", "--work-id", "20250709-001", "--force"])
 def test_main_flow_force_overwrite(mock_workorder, mock_template, temp_project_dir):
-    """E2Eテスト: 強制上書きフロー"""
     report_path = temp_project_dir / "workorders" / "reports" / "WO-20250709-001_report.md"
     report_path.write_text("古いコンテンツ", encoding="utf-8")
-    
+
     with patch("solar_circuit.report_generator.PROJECT_ROOT", temp_project_dir):
         main()
         content = report_path.read_text(encoding="utf-8")
+        assert "タイトル" in content
         assert "テスト作業" in content
         assert "古いコンテンツ" not in content
+
 
 @patch("solar_circuit.report_generator.FORCE_OVERWRITE_ENV", True)
 @patch("sys.argv", ["report_generator.py", "--work-id", "20250709-001"])
 def test_main_flow_force_overwrite_env(mock_workorder, mock_template, temp_project_dir):
-    """E2Eテスト: 環境変数による強制上書きフロー"""
     report_path = temp_project_dir / "workorders" / "reports" / "WO-20250709-001_report.md"
     report_path.write_text("古いコンテンツ", encoding="utf-8")
-    
+
     with patch("solar_circuit.report_generator.PROJECT_ROOT", temp_project_dir):
         main()
         content = report_path.read_text(encoding="utf-8")
+        assert "タイトル" in content
         assert "テスト作業" in content
         assert "古いコンテンツ" not in content
