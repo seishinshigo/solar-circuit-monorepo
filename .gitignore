@@ -15,4 +15,8 @@ coverage_html/
 # Python cache
 __pycache__/
 *.py[cod]
-.env
+.env.coverage
+coverage.xml
+
+projects/solar_circuit/.coverage
+projects/solar_circuit/.coveragerc
