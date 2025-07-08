@@ -7,7 +7,11 @@
 
 - **ワークオーダーID**: {{ workorder.id }}
 - **タイトル**: {{ workorder.title }}
-- **関連ドキュメント**: {{ workorder.metadata.related_docs | default('なし') }}
+{% if workorder.metadata and workorder.metadata.related_docs %}
+- **関連ドキュメント**: {{ workorder.metadata.related_docs }}
+{% else %}
+- **関連ドキュメント**: なし
+{% endif %}
 
 ## 2. 作業内容
 

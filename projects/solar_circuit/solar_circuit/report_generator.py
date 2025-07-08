@@ -94,6 +94,8 @@ def load_workorder(work_id: str) -> dict:
     else:
         workorder_data["summary_content"] = ""
 
+    workorder_data.setdefault("metadata", {})
+
     return workorder_data
 
 
