@@ -1,0 +1,11 @@
+2025-07-09 03:26:34,847 [INFO] NEW モードでレポートを保存しました: projects/solar_circuit/workorders/reports/WO-20250709-001_report.md
+2025-07-09 03:26:34,847 [INFO] 実行モード: NEW
+2025-07-09 04:05:57,241 [INFO] OVERWRITE_TEMPLATE モードでレポートを保存しました: /home/wandr/seishinshigo_system/projects/solar_circuit/workorders/reports/WO-20250709-001_report.md
+2025-07-09 04:05:57,242 [INFO] 実行モード: OVERWRITE_TEMPLATE
+2025-07-09 04:20:18,371 [INFO] OVERWRITE_TEMPLATE モードでレポートを保存しました: /home/wandr/seishinshigo_system/projects/solar_circuit/workorders/reports/WO-20250709-001_report.md
+2025-07-09 04:20:18,371 [INFO] 実行モード: OVERWRITE_TEMPLATE
+2025-07-09 04:22:10,297 [INFO] NEW モードでレポートを保存しました: /home/wandr/seishinshigo_system/projects/solar_circuit/workorders/reports/WO-20250709-002_report.md
+2025-07-09 04:22:10,297 [INFO] 実行モード: NEW
+2025-07-09 04:22:37,330 [INFO] 差分パッチを保存しました: /home/wandr/seishinshigo_system/projects/solar_circuit/workorders/reports/WO-20250709-001_report.patch
+2025-07-09 04:22:37,330 [INFO] APPEND モードでレポートを保存しました: /home/wandr/seishinshigo_system/projects/solar_circuit/workorders/reports/WO-20250709-001_report.md
+2025-07-09 04:22:37,330 [INFO] 実行モード: APPEND

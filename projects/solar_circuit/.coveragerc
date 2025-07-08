@@ -1,6 +1,0 @@
-[run]
-branch = True
-source = solar_circuit
-omit =
-    */__init__.py
-    */tests/*

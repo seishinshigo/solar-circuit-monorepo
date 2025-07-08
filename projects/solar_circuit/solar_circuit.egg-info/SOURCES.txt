@@ -1,5 +1,7 @@
+README.md
 pyproject.toml
 solar_circuit/cli.py
+solar_circuit/report_generator.py
 solar_circuit.egg-info/PKG-INFO
 solar_circuit.egg-info/SOURCES.txt
 solar_circuit.egg-info/dependency_links.txt
@@ -15,3 +17,4 @@ tests/test_cli_hello.py
 tests/test_cli_plan.py
 tests/test_cli_report.py
 tests/test_orchestrator.py
+tests/test_report_generator.py
