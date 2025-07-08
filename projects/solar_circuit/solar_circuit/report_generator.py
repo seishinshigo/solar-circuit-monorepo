@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 #!/usr/bin/env python3
 """
 report_generator.py
@@ -14,8 +16,6 @@ CLI スクリプト: ワークオーダー JSON と Markdown テンプレート�
 
 SCRIPT_DIR = Path(__file__).parent.resolve()
 PROJECT_ROOT = Path(os.environ.get("PROJECT_ROOT", SCRIPT_DIR.parent)).resolve()
-
-from __future__ import annotations
 
 import argparse
 import difflib
