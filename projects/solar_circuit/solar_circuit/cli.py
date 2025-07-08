@@ -6,6 +6,8 @@ from pathlib import Path
 import typer
 import jsonschema
 
+import re
+
 app = typer.Typer(help="Solar Circuit CLI")
 
 # --- plan サブコマンド --------------------------------------------------
@@ -162,11 +164,30 @@ def commit(msg: str = typer.Argument(..., help="Git commit message")):
     1) ステージ済み差分から Work-Order ID を推測し report save → git add  
     2) git add -A → git commit を実行
     """
-    # 1. WO_ID 推測（インデックス差分）
+    # 1. WO_ID 推測（インデックス差分と未ステージングファイル）
+    wo_id = ""
     try:
-        wo_id = subprocess.check_output(
-            "git diff --cached --name-only | grep -oE 'wo-[0-9]{8}-[0-9]{3}' | head -n1 || true",
-            shell=True, text=True).strip()
+        # ステージングされたファイルからWO_IDを推測
+        staged_files = subprocess.check_output("git diff --cached --name-only", shell=True, text=True).splitlines()
+        for f in staged_files:
+            match = re.search(r"WO-([0-9]{8}-[0-9]{3})\.json", f)
+            if match:
+                wo_id = match.group(1)
+                break
+
+        # ステージングされていないファイルからWO_IDを推測（もしあればステージング）
+        if not wo_id:
+            unstaged_files = subprocess.check_output("git status --porcelain", shell=True, text=True).splitlines()
+            for line in unstaged_files:
+                if line.startswith("??") or line.startswith("A ") or line.startswith("M ") or line.startswith(" D"): # Untracked, Added, Modified, Deleted
+                    file_path = line[3:].strip()
+                    match = re.search(r"WO-([0-9]{8}-[0-9]{3})\.json", file_path)
+                    if match:
+                        wo_id = match.group(1)
+                        typer.echo(f"ℹ️ Found unstaged Work-Order: {file_path}. Staging it now.")
+                        subprocess.run(["git", "add", file_path], check=True)
+                        break
+
     except subprocess.CalledProcessError:
         wo_id = ""
 
@@ -176,7 +197,7 @@ def commit(msg: str = typer.Argument(..., help="Git commit message")):
             typer.echo(f"ℹ️ Report already exists → {report_path}")
         else:
             typer.echo(f"📝 Generating report for {wo_id}")
-            subprocess.run(["sc", "report", "save", wo_id, "README.md"], check=False)  # README.md などダミー指定
+            subprocess.run(["sc", "report", "create", wo_id], check=True)
     else:
         typer.echo("⚠️  No Work-Order ID found in staged diff – skipping report generation.")
 
