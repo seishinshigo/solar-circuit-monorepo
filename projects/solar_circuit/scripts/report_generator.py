@@ -32,6 +32,9 @@ TEMPLATE_END = "<!-- TEMPLATE_END -->"
 RECOVER_SUFFIX = "_recovered"
 LOG_FILE = "projects/solar_circuit/logs/report_generator.log"
 
+# ログディレクトリが存在しない場合は作成
+Path(LOG_FILE).parent.mkdir(parents=True, exist_ok=True)
+
 # --- ロガー設定 ---
 logging.basicConfig(
     level=logging.INFO,
