@@ -1,5 +1,19 @@
 from __future__ import annotations
 
+from pathlib import Path
+import os
+import json
+import logging
+import argparse
+import difflib
+import shutil
+from datetime import datetime
+from typing import Literal
+
+from dotenv import load_dotenv
+from jinja2 import Template
+
+
 #!/usr/bin/env python3
 """
 report_generator.py
@@ -17,18 +31,6 @@ CLI スクリプト: ワークオーダー JSON と Markdown テンプレート�
 SCRIPT_DIR = Path(__file__).parent.resolve()
 PROJECT_ROOT = Path(os.environ.get("PROJECT_ROOT", SCRIPT_DIR.parent)).resolve()
 
-import argparse
-import difflib
-import json
-import logging
-import os
-import shutil
-from datetime import datetime
-from pathlib import Path
-from typing import Literal
-
-from dotenv import load_dotenv
-from jinja2 import Template
 
 # --- 設定 ---
 TEMPLATE_START = "<!-- TEMPLATE_START -->"
