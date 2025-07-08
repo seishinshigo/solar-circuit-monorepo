@@ -220,14 +220,16 @@ def test_write_report_recover(temp_project_dir):
 @patch("sys.argv", ["report_generator.py", "--work-id", "20250709-001"])
 def test_main_flow_new(mock_workorder, temp_project_dir):
     with patch("solar_circuit.report_generator.PROJECT_ROOT", temp_project_dir):
-        # テンプレートを強制生成
+        # テンプレート生成（mainより前！）
         template_path = temp_project_dir / "templates" / "report_template.md"
+        template_path.parent.mkdir(parents=True, exist_ok=True)
         template_path.write_text(
             "<!-- TEMPLATE_START -->\n# タイトル: {{ workorder.title }}\n<!-- TEMPLATE_END -->",
             encoding="utf-8"
         )
 
         main()
+
         report_path = temp_project_dir / "workorders" / "reports" / "WO-20250709-001_report.md"
         assert report_path.exists()
         content = report_path.read_text(encoding="utf-8")
@@ -240,16 +242,17 @@ def test_main_flow_force_overwrite(mock_workorder, temp_project_dir):
     with patch("solar_circuit.report_generator.PROJECT_ROOT", temp_project_dir):
         # テンプレート生成
         template_path = temp_project_dir / "templates" / "report_template.md"
+        template_path.parent.mkdir(parents=True, exist_ok=True)
         template_path.write_text(
             "<!-- TEMPLATE_START -->\n# タイトル: {{ workorder.title }}\n<!-- TEMPLATE_END -->",
             encoding="utf-8"
         )
 
-        # 既存ファイルとして古い内容を書き込んでおく
         report_path = temp_project_dir / "workorders" / "reports" / "WO-20250709-001_report.md"
         report_path.write_text("古いコンテンツ", encoding="utf-8")
 
         main()
+
         content = report_path.read_text(encoding="utf-8")
         assert "タイトル" in content
         assert "テスト作業" in content
@@ -262,16 +265,17 @@ def test_main_flow_force_overwrite_env(mock_workorder, temp_project_dir):
     with patch("solar_circuit.report_generator.PROJECT_ROOT", temp_project_dir):
         # テンプレート生成
         template_path = temp_project_dir / "templates" / "report_template.md"
+        template_path.parent.mkdir(parents=True, exist_ok=True)
         template_path.write_text(
             "<!-- TEMPLATE_START -->\n# タイトル: {{ workorder.title }}\n<!-- TEMPLATE_END -->",
             encoding="utf-8"
         )
 
-        # 既存ファイルとして古い内容を書き込んでおく
         report_path = temp_project_dir / "workorders" / "reports" / "WO-20250709-001_report.md"
         report_path.write_text("古いコンテンツ", encoding="utf-8")
 
         main()
+
         content = report_path.read_text(encoding="utf-8")
         assert "タイトル" in content
         assert "テスト作業" in content
