@@ -28,7 +28,9 @@ jobs:
           pip install -r projects/solar_circuit/requirements-dev.txt
 
       - name: List changed files
-        run: git diff --name-only ${{ github.event.before }} ${{ github.sha }}
+        run: |
+          git fetch --deepen=100
+          git diff --name-only origin/main...HEAD
 
       - name: Generate report for each new workorder
         run: |
