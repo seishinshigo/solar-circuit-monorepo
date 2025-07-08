@@ -1,0 +1,20 @@
+{
+  "id": "WO-20250709-001",
+  "title": "作業報告書自動生成のモード別分岐実装（A案）",
+  "status": "open",
+  "priority": "high",
+  "file_path": "projects/solar_circuit/collaboration/design_docs/003_workorder.md",
+  "template_path": "projects/solar_circuit/templates/WO_report_template.md",
+  "script_path": "projects/solar_circuit/scripts/report_generator.py",
+  "log_path": "projects/solar_circuit/logs/report_generator.log",
+  "test_path": "projects/solar_circuit/tests/test_report_generator.py",
+  "env_path": "projects/solar_circuit/.env",
+  "cli_reference": "⭐Gemini CLI 主なコマンド.txt",
+  "due": "2025-07-15T23:59:00+09:00",
+  "assigned_to": "gemini-cli",
+  "modes": ["NEW", "APPEND", "OVERWRITE_TEMPLATE", "RECOVER"],
+  "markers": {
+    "start": "<!-- TEMPLATE_START -->",
+    "end": "<!-- TEMPLATE_END -->"
+  }
+}

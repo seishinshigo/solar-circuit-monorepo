@@ -1,4 +1,6 @@
-# 作業報告書テンプレート
+# Create lint-compliant Markdown template file
+content = """# 作業報告書テンプレート
+<!-- TEMPLATE_START -->
 
 ## 1. 概要
 
@@ -41,8 +43,8 @@
 
 特記事項や、今後の課題、CI/CDバッジなどの追加情報があれば記述します。
 
-- CI/CDバッジ: ![CI Status](https://example.com/ci-badge.svg)
-- カバレッジバッジ: ![Coverage](https://example.com/coverage-badge.svg)
+- ![CI Status](https://example.com/ci-badge.svg)
+- ![Coverage](https://example.com/coverage-badge.svg)
 
 ---
 
@@ -54,4 +56,3 @@
   "title": "{{ workorder.title }}",
   "success_cmd": "[成功確認コマンド]"
 }
-```
