@@ -11,6 +11,10 @@ CLI スクリプト: ワークオーダー JSON と Markdown テンプレート�
 を自動で実行し、Jinja2 によってテンプレートを動的にレンダリングし、
 実行結果をログに記録します。
 """
+
+SCRIPT_DIR = Path(__file__).parent.resolve()
+PROJECT_ROOT = Path(os.environ.get("PROJECT_ROOT", SCRIPT_DIR.parent)).resolve()
+
 from __future__ import annotations
 
 import argparse
