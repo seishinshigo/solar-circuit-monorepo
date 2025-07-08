@@ -67,7 +67,7 @@ FORCE_OVERWRITE_ENV = os.getenv("FORCE_OVERWRITE", "false").lower() == "true"
 
 def load_workorder(work_id: str) -> dict:
     """指定されたワークオーダーIDのJSONファイルを読み込む"""
-    path = PROJECT_ROOT / f"workorders/incoming/WO-{work_id}.json"
+    path = PROJECT_ROOT / f"workorders/incoming/{work_id}.json"
     if not path.exists():
         raise FileNotFoundError(f"ワークオーダーファイルが見つかりません: {path}")
     with open(path, encoding="utf-8") as f:
@@ -204,7 +204,7 @@ def generate_report_from_work_id(work_id: str, force: bool = False):
     """指定されたワークオーダーIDに基づいてレポートを生成・更新する"""
     try:
         workorder = load_workorder(work_id)
-        report_path = PROJECT_ROOT / f"workorders/reports/WO-{work_id}_report.md"
+        report_path = PROJECT_ROOT / f"workorders/reports/{work_id}_report.md"
         template_path = PROJECT_ROOT / "templates/report_template.md"
 
         template_str = extract_template_from_file(template_path)
