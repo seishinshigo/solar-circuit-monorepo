@@ -71,44 +71,67 @@ def _validate_json(file: Path, schema_path: Path):
 # ╰────────────────────────────────────────────────────────────────────╯
 
 
+from solar_circuit.report_generator import generate_report_from_work_id
+
+# ╭──────────────────── Work-Order / Report Validate ─────────────────╮
+@plan_app.command("validate")
+def validate_workorder(
+    file: Path = typer.Argument(..., exists=True, readable=True)
+):
+    """Work-Order JSON をスキーマ検証"""
+    schema_path = Path("shared_libs/schemas/gemini.workorder@1.json")
+    _validate_json(file, schema_path)
+
+
+@report_app.command("validate")
+def validate_report(
+    file: Path = typer.Argument(..., exists=True, readable=True)
+):
+    """Status-Report JSON をスキーマ検証 (外部 $ref 対応)"""
+    schema_dir = Path("shared_libs/schemas")
+    report_schema = schema_dir / "gemini.report@1.json"
+    work_schema   = schema_dir / "gemini.workorder@1.json"
+
+    with work_schema.open() as f:
+        work_def = json.load(f)
+    with report_schema.open() as f:
+        rep_def = json.load(f)
+
+    with file.open() as f:
+        instance = json.load(f)
+
+    resolver = jsonschema.RefResolver.from_schema(rep_def, store={work_def["$id"]: work_def})
+    jsonschema.validate(instance, rep_def, resolver=resolver)
+    typer.echo(f"✅ {file} is valid.")
+
+
+def _validate_json(file: Path, schema_path: Path):
+    try:
+        schema = json.loads(schema_path.read_text())
+        data   = json.loads(file.read_text())
+        jsonschema.validate(instance=data, schema=schema)
+        typer.echo(f"✅ {file} is valid.")
+    except (json.JSONDecodeError, jsonschema.ValidationError) as e:
+        typer.echo(f"❌ Validation failed: {e}")
+        raise typer.Exit(code=1)
+# ╰────────────────────────────────────────────────────────────────────╯
+
+
 @report_app.command("create")
 def create_report(
-    id: str = typer.Argument(..., help="Work-Order ID (wo-YYYYMMDD-XXX)"),
+    work_id: str = typer.Argument(..., help="Work-Order ID (例: 20250709-001)"),
+    force: bool = typer.Option(False, "--force", "-f", help="強制上書きモード")
 ):
-    """指定された Work-Order ID のレポートスケルトンを生成"""
-    workorder_path = Path(f"workorders/incoming/{id}.json")
-    if not workorder_path.exists():
-        typer.echo(f"❌ Work-Order JSON not found: {workorder_path}")
+    """指定された Work-Order ID のレポートを生成・更新"""
+    try:
+        generate_report_from_work_id(work_id, force)
+        typer.echo(f"✅ Report for WO-{work_id} processed successfully.")
+    except FileNotFoundError as e:
+        typer.echo(f"❌ Error: {e}")
         raise typer.Exit(code=1)
-
-    with open(workorder_path, "r") as f:
-        workorder_data = json.load(f)
-
-    template_path = Path("templates/report_template.md")
-    report_dir = Path("workorders/reports")
-    report_dir.mkdir(parents=True, exist_ok=True)
-    report_path = report_dir / f"{id}_report.md"
-
-    if report_path.exists():
-        typer.echo(f"⚠️ Report already exists: {report_path}")
+    except Exception as e:
+        typer.echo(f"❌ An unexpected error occurred: {e}")
         raise typer.Exit(code=1)
-
-    template_content = template_path.read_text()
-
-    # プレースホルダの置換
-    filled_content = template_content
-    filled_content = filled_content.replace("{{ workorder.id }}", workorder_data.get("id", id))
-    filled_content = filled_content.replace("{{ workorder.title }}", workorder_data.get("title", f"Work Order {id}"))
-    filled_content = filled_content.replace("{{ workorder.metadata.related_docs | default('なし') }}", workorder_data.get("metadata", {}).get("related_docs", "なし"))
-
-    steps_formatted = "\n".join([f"- {step}" for step in workorder_data.get("steps", [])])
-    filled_content = filled_content.replace("{{ workorder.steps_formatted }}", steps_formatted)
-
-    expected_output_formatted = "\n".join([f"- [ ] {output}" for output in workorder_data.get("expected_output", [])])
-    filled_content = filled_content.replace("{{ workorder.expected_output_formatted }}", expected_output_formatted)
-
-    report_path.write_text(filled_content)
-    typer.echo(f"✅ Report skeleton created at {report_path}")
 
 
 # ╭────────────────────────── report save ───────────────────────────╮
