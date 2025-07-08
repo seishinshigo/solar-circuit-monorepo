@@ -1,22 +1,2 @@
-# Python / direnv
-__pycache__/
-.direnv/
-*.pyc
-# Virtualenv
-.venv/
-# Coverage
-coverage_html/
-# Environment files
-.envrc
-# Vim swap files
-*.swp
-# setuptools metadata
-*.egg-info/
-# Python cache
-__pycache__/
-*.py[cod]
-.env.coverage
-coverage.xml
-
-projects/solar_circuit/.coverage
-projects/solar_circuit/.coveragerc
+projects/solar_circuit/workorders/incoming/WO-WO-*.json
+projects/solar_circuit/workorders/reports/WO-WO-*_report.md
