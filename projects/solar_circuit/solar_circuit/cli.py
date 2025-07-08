@@ -270,11 +270,6 @@ def commit(
             typer.echo(f"⚠️ No files found to stage for Work-Order {wo_id}. Nothing to commit.")
             raise typer.Exit(code=1)
 
-    else:
-        # WO-IDが指定されない場合、通常の git add -A
-        typer.echo("📂 Staging all changes (git add -A)...")
-        subprocess.run(["git", "add", "-A"], check=True)
-
     subprocess.run(["git", "commit", "-m", msg], check=True)
     typer.echo("✅ Commit completed.")
 # ╰──────────────────────────────────────────────────────────────────╯

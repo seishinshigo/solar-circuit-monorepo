@@ -142,15 +142,13 @@ def determine_mode(report_path: Path, rendered_template: str) -> tuple[Mode, str
         return "APPEND", original_content
 
 
+from jinja2 import Environment, FileSystemLoader
+
 def render_template(template_str: str, workorder: dict) -> str:
     """Jinja2テンプレートをレンダリングする"""
-    template = Template(template_str)
-    # Jinja2の未定義変数を許容する
-    from jinja2 import Undefined
-    class SilentUndefined(Undefined):
-        def _fail_with_undefined_error(self, *args, **kwargs):
-            return ''
-    template.environment.undefined = SilentUndefined
+    # テンプレート文字列から直接ロードするのではなく、Environmentを使用
+    env = Environment(loader=FileSystemLoader(PROJECT_ROOT / "templates"), autoescape=False)
+    template = env.from_string(template_str)
     return template.render(workorder=workorder)
 
 
@@ -202,12 +200,23 @@ def write_report(report_path: Path, rendered_template: str, mode: Mode, original
     logger.info(f"{mode} モードでレポートを保存しました: {report_path}")
 
 
+import re
+
+def clean_summary_content(md_content: str) -> str:
+    # 全てのMarkdown見出しレベルを1つ下げる (例: #→##, ##→###)
+    cleaned_content = re.sub(r'^(#{1,6})\s', r'#\1 ', md_content, flags=re.MULTILINE)
+    return cleaned_content.strip()
+
 def generate_report_from_work_id(work_id: str, force: bool = False):
     """指定されたワークオーダーIDに基づいてレポートを生成・更新する"""
     try:
         workorder = load_workorder(work_id)
         report_path = PROJECT_ROOT / f"workorders/reports/{work_id}_report.md"
         template_path = PROJECT_ROOT / "templates/report_template.md"
+
+        # summary_content の見出しレベルを調整
+        if "summary_content" in workorder and workorder["summary_content"]:
+            workorder["summary_content"] = clean_summary_content(workorder["summary_content"])
 
         template_str = extract_template_from_file(template_path)
         rendered_template = render_template(template_str, workorder)
