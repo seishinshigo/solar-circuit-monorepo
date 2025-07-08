@@ -11,3 +11,7 @@
 2025-07-09 04:22:37,330 [INFO] 実行モード: APPEND
 2025-07-09 04:24:08,074 [INFO] NEW モードでレポートを保存しました: /home/wandr/seishinshigo_system/projects/solar_circuit/workorders/reports/WO-20250709-004_report.md
 2025-07-09 04:24:08,074 [INFO] 実行モード: NEW
+2025-07-09 04:26:54,150 [INFO] NEW モードでレポートを保存しました: /home/wandr/seishinshigo_system/projects/solar_circuit/workorders/reports/WO-20250709-005_report.md
+2025-07-09 04:26:54,150 [INFO] 実行モード: NEW
+2025-07-09 04:26:59,687 [INFO] OVERWRITE_TEMPLATE モードでレポートを保存しました: /home/wandr/seishinshigo_system/projects/solar_circuit/workorders/reports/WO-20250709-005_report.md
+2025-07-09 04:26:59,687 [INFO] 実行モード: OVERWRITE_TEMPLATE
