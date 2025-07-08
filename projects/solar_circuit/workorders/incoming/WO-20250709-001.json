@@ -16,5 +16,8 @@
   "markers": {
     "start": "<!-- TEMPLATE_START -->",
     "end": "<!-- TEMPLATE_END -->"
+  },
+  "metadata": {
+    "related_docs": "projects/solar_circuit/collaboration/design_docs/003_workorder.md"
   }
 }
