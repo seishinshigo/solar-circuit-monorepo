@@ -67,7 +67,9 @@ FORCE_OVERWRITE_ENV = os.getenv("FORCE_OVERWRITE", "false").lower() == "true"
 
 def load_workorder(work_id: str) -> dict:
     """指定されたワークオーダーIDのJSONファイルを読み込む"""
-    path = PROJECT_ROOT / f"workorders/incoming/{work_id}.json"
+    # work_id が 'WO-' で始まっていない場合、プレフィックスを追加
+    formatted_work_id = work_id if work_id.startswith("WO-") else f"WO-{work_id}"
+    path = PROJECT_ROOT / f"workorders/incoming/{formatted_work_id}.json"
     if not path.exists():
         raise FileNotFoundError(f"ワークオーダーファイルが見つかりません: {path}")
     with open(path, encoding="utf-8") as f:
