@@ -46,12 +46,14 @@ pip install -r projects/solar_circuit/requirements-dev.txt
 
 * **レポート自動生成 (`report-autosave.yml`)：**
   新しい作業依頼ファイル（例：`WO-20250708-001.json`）が `projects/solar_circuit/workorders/incoming/` ディレクトリに追加された際、自動的に対応する作業報告書テンプレート（例：`WO-20250708-001_report.md`）を `reports/` ディレクトリに生成します。
+　なお、新たに `detail_report_path` フィールドを導入し、より詳細な報告書Markdownを `collaboration/detailed_reports/` 配下から挿入できるよう拡張済みです。
 
 ---
 
 ## 📝 作業報告書（レポート）の作成と提出フロー
 
-このプロジェクトでは、すべての作業に対して標準化されたレポートを作成・提出するワークフローを導入しています。
+作業終了後、レポートを記述して `main` ブランチに push すると、`report-autosave.yml` により自動的に処理されます。
+※ レポート生成時に `clean_summary_content` 関数でMarkdown見出しを１レベル下げる処理を行い、テンプレートの階層構造と競合しないよう自動調整します。
 
 ### 作業報告書の作成
 
