@@ -20,5 +20,6 @@
     "created_by": "openai-chatgpt",
     "base_branch": "main",
     "check_strategy": "diff-based ID detection (Plan B)"
-  }
+  },
+  "detail_report_path": "projects/solar_circuit/workorders/reports/wo-20240710-005_detail_report.md"
 }

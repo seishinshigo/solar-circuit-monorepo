@@ -3,12 +3,17 @@
   "title": "作業報告書テンプレートと品質基準整備",
   "kind": "design",
   "phase": "documentation",
-  "rules": ["docs/solar_circuit/RULES.md"],
+  "rules": [
+    "docs/solar_circuit/RULES.md"
+  ],
   "related_docs": [
     "collaboration/design_docs/002_workorder.md",
     "workorders/reports/WO-20250707-005_report.md"
   ],
-  "examples": ["templates/report_template.md"],
+  "examples": [
+    "templates/report_template.md"
+  ],
   "success_cmd": "npx markdownlint-cli2 'projects/**/*.md'",
-  "deadline": "2025-07-10"
+  "deadline": "2025-07-10",
+  "detail_report_path": "projects/solar_circuit/workorders/reports/WO-20250707-006_detail_report.md"
 }

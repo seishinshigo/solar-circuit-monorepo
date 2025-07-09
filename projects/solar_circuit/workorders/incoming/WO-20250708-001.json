@@ -18,5 +18,6 @@
     "projects/solar_circuit/tests/test_cli_report.py",
     "projects/solar_circuit/templates/report_template.md",
     "README.md"
-  ]
+  ],
+  "detail_report_path": "projects/solar_circuit/workorders/reports/WO-20250708-001_detail_report.md"
 }

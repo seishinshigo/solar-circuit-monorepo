@@ -26,5 +26,6 @@
     "related_docs": "collaboration/design_docs/WO-20250709-008_workorder.md"
   },
   "steps_formatted": "- [ ] これまでの『チャット依頼のワークオーダー化』に関する作業内容を詳細にまとめた報告書を作成する。",
-  "expected_output_formatted": "- [x] レポートが生成され、正しいモードで保存されている\n- [x] CLIからの呼び出しが正常に動作する\n- [x] テストがグリーンである"
+  "expected_output_formatted": "- [x] レポートが生成され、正しいモードで保存されている\n- [x] CLIからの呼び出しが正常に動作する\n- [x] テストがグリーンである",
+  "detail_report_path": "projects/solar_circuit/workorders/reports/WO-20250709-008_detail_report.md"
 }

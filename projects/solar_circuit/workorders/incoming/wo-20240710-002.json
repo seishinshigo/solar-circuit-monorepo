@@ -20,5 +20,6 @@
   "metadata": {
     "created_by": "openai-chatgpt",
     "base_branch": "feat/orchestrator-skeleton"
-  }
+  },
+  "detail_report_path": "projects/solar_circuit/workorders/reports/wo-20240710-002_detail_report.md"
 }
