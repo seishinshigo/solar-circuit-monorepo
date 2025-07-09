@@ -1,192 +1,140 @@
-#!/usr/bin/env python3
-"""
-report_generator.py
--------------------
-CLI スクリプト: ワークオーダー JSON と Markdown テンプレートを読み込み、
-既存レポートの状態に応じて
-    • 新規生成 (NEW)
-    • 追記 (APPEND)
-    • テンプレ上書き (OVERWRITE_TEMPLATE)
-    • 回避／退避 (RECOVER)
-を自動で実行し、Jinja2 によってテンプレートを動的にレンダリングし、
-実行結果をログに記録します。
-"""
-
-from __future__ import annotations
-
-import os
 import json
-import logging
-import argparse
-import difflib
-import shutil
-from datetime import datetime
 from pathlib import Path
-from typing import Literal
+import pytest
+from unittest.mock import patch
 
-from dotenv import load_dotenv
-from jinja2 import Environment, FileSystemLoader
-
-# --- プロジェクトルート設定 ---
-SCRIPT_DIR = Path(__file__).parent.resolve()
-PROJECT_ROOT = Path(os.environ.get("PROJECT_ROOT", SCRIPT_DIR.parent)).resolve()
-
-# --- ログファイル設定 ---
-LOG_FILE = PROJECT_ROOT / "logs" / "report_generator.log"
-LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-
-# --- ロガー設定 ---
-for handler in logging.root.handlers[:]:
-    logging.root.removeHandler(handler)
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.FileHandler(LOG_FILE),
-        logging.StreamHandler()
-    ]
+# テスト対象の関数をインポート
+from solar_circuit.report_generator import (
+    load_workorder,
+    generate_report_from_work_id,
+    determine_mode,
+    clean_summary_content
 )
-logger = logging.getLogger(__name__)
 
-# --- モード定義とマーカー ---
-Mode = Literal["NEW", "APPEND", "OVERWRITE_TEMPLATE", "RECOVER", "FORCED_OVERWRITE"]
-TEMPLATE_START = "<!-- TEMPLATE_START -->"
-TEMPLATE_END   = "<!-- TEMPLATE_END -->"
-RECOVER_SUFFIX = "_recovered"
+# --- テストデータ ---
+MOCK_WO_ID = "20250701-001"
+MOCK_WO_DATA = {
+    "id": MOCK_WO_ID,
+    "title": "Test Workorder",
+    "file_path": "docs/test.md",
+    "metadata": {}
+}
+MOCK_TEMPLATE_CONTENT = "<!-- TEMPLATE_START -->\n# {{ workorder.title }}\n\n{{ workorder.summary_content }}\n<!-- TEMPLATE_END -->"
+MOCK_RELATED_DOC_CONTENT = "This is a related document."
 
-# --- 環境変数読み込み ---
-load_dotenv(dotenv_path=PROJECT_ROOT / ".env")
-FORCE_OVERWRITE_ENV = os.getenv("FORCE_OVERWRITE", "false").lower() == "true"
+@pytest.fixture
+def setup_test_environment(tmp_path):
+    """テスト用のディレクトリとファイルを作成するフィクスチャ"""
+    project_root = tmp_path
+    
+    # .env ファイル
+    (project_root / ".env").write_text(f"PROJECT_ROOT={project_root}")
 
+    # 必要なディレクトリを作成
+    (project_root / "workorders/incoming").mkdir(parents=True)
+    (project_root / "workorders/reports").mkdir(parents=True)
+    (project_root / "templates").mkdir(parents=True)
+    (project_root / "docs").mkdir(parents=True)
+    (project_root / "logs").mkdir(parents=True)
 
-def load_workorder(work_id: str) -> dict:
-    """指定されたワークオーダーIDのJSONファイルを読み込む"""
-    formatted = work_id if work_id.startswith("WO-") else f"WO-{work_id}"
-    path = PROJECT_ROOT / f"workorders/incoming/{formatted}.json"
-    if not path.exists():
-        raise FileNotFoundError(f"ワークオーダーファイルが見つかりません: {path}")
-    with open(path, encoding="utf-8") as f:
-        data = json.load(f)
+    # モックのワークオーダーファイルを作成
+    wo_file = project_root / f"workorders/incoming/WO-{MOCK_WO_ID}.json"
+    wo_file.write_text(json.dumps(MOCK_WO_DATA))
 
-    related = data.get("file_path") or data.get("metadata", {}).get("related_docs")
-    if related:
-        full = PROJECT_ROOT / related
-        if full.exists():
-            data["summary_content"] = full.read_text(encoding="utf-8")
-        else:
-            logger.warning(f"関連ドキュメントが見つかりません: {full}")
-            data["summary_content"] = ""
-    else:
-        data["summary_content"] = ""
+    # モックのテンプレートファイルを作成
+    template_file = project_root / "templates/report_template.md"
+    template_file.write_text(MOCK_TEMPLATE_CONTENT)
 
-    data.setdefault("metadata", {})
-    return data
+    # モックの関連ドキュメントを作成
+    related_doc_file = project_root / "docs/test.md"
+    related_doc_file.write_text(MOCK_RELATED_DOC_CONTENT)
 
+    # report_generatorのPROJECT_ROOTをパッチ
+    with patch('solar_circuit.report_generator.PROJECT_ROOT', project_root):
+        yield project_root
 
-def extract_template_from_file(template_path: Path) -> str:
-    """テンプレートファイルからマーカー間の部分を抽出する"""
-    content = template_path.read_text(encoding="utf-8")
-    start = content.find(TEMPLATE_START)
-    end   = content.find(TEMPLATE_END)
-    if start != -1 and end != -1:
-        return content[start: end + len(TEMPLATE_END)]
-    raise ValueError(f"テンプレートにマーカーが不足しています: {template_path}")
+def test_load_workorder_with_related_docs(setup_test_environment):
+    """関連ドキュメントが正しく読み込まれるかテスト"""
+    project_root = setup_test_environment
+    
+    with patch('solar_circuit.report_generator.PROJECT_ROOT', project_root):
+        workorder = load_workorder(MOCK_WO_ID)
+        assert workorder["summary_content"] == MOCK_RELATED_DOC_CONTENT
 
+def test_load_workorder_with_duplicated_path(setup_test_environment):
+    """パスが重複している場合に正しく解決されるかテスト"""
+    project_root = setup_test_environment
+    
+    # WOデータを書き換えて、重複パスのシナリオを作成
+    # project_rootが/tmp/pytest-of-user/pytest-0/setup_test_environment0 のような形になるので
+    # その親の名前と、自身の名前を結合して重複パスを作る
+    duplicated_path = f"{project_root.parent.name}/{project_root.name}/docs/test.md"
+    
+    wo_data_with_dup_path = MOCK_WO_DATA.copy()
+    wo_data_with_dup_path["file_path"] = duplicated_path
+    
+    wo_file = project_root / f"workorders/incoming/WO-{MOCK_WO_ID}.json"
+    wo_file.write_text(json.dumps(wo_data_with_dup_path))
 
-def extract_part_from_content(content: str, start_marker: str, end_marker: str) -> str | None:
-    """文字列からマーカー間の部分を抽出する"""
-    s = content.find(start_marker)
-    e = content.find(end_marker)
-    if s != -1 and e != -1:
-        return content[s: e + len(end_marker)]
-    return None
+    with patch('solar_circuit.report_generator.PROJECT_ROOT', project_root):
+        workorder = load_workorder(MOCK_WO_ID)
+        # 関連ドキュメントの内容が正しく読み込まれていることを確認
+        assert workorder["summary_content"] == MOCK_RELATED_DOC_CONTENT
 
+def test_load_workorder_with_missing_file(setup_test_environment):
+    """関連ファイルが存在しない場合に警告ログが出るかテスト"""
+    project_root = setup_test_environment
+    
+    # 存在しないファイルパスを持つWOデータを作成
+    wo_data_missing_file = MOCK_WO_DATA.copy()
+    wo_data_missing_file["file_path"] = "docs/non_existent_file.md"
+    
+    wo_file = project_root / f"workorders/incoming/WO-{MOCK_WO_ID}.json"
+    wo_file.write_text(json.dumps(wo_data_missing_file))
 
-def determine_mode(report_path: Path, rendered: str) -> tuple[Mode, str | None]:
-    """レポートの状態に基づいて実行モードを決定"""
-    if not report_path.exists():
-        return "NEW", None
-    original = report_path.read_text(encoding="utf-8")
-    existing = extract_part_from_content(original, TEMPLATE_START, TEMPLATE_END)
-    if existing is None:
-        return "RECOVER", original
-    norm_new = "\n".join(line.strip() for line in rendered.strip().splitlines())
-    norm_exist = "\n".join(line.strip() for line in existing.strip().splitlines())
-    norm_orig = "\n".join(line.strip() for line in original.strip().splitlines())
-    if norm_new == norm_exist:
-        if norm_orig == norm_exist:
-            return "OVERWRITE_TEMPLATE", original
-        return "APPEND", original
-    return "APPEND", original
+    # ロガーをパッチして、警告が呼ばれたか確認
+    with patch('solar_circuit.report_generator.logger.warning') as mock_warning:
+        with patch('solar_circuit.report_generator.PROJECT_ROOT', project_root):
+            workorder = load_workorder(MOCK_WO_ID)
+            # summary_contentが空であることを確認
+            assert workorder["summary_content"] == ""
+            # logger.warningが1回呼ばれたことを確認
+            mock_warning.assert_called_once()
 
+def test_generate_report_new(setup_test_environment):
+    """新規レポートが正しく生成されるかテスト"""
+    project_root = setup_test_environment
+    report_path = project_root / f"workorders/reports/WO-{MOCK_WO_ID}_report.md"
 
-def render_template(template_str: str, workorder: dict) -> str:
-    """Jinja2テンプレートをレンダリング"""
-    env = Environment(loader=FileSystemLoader(PROJECT_ROOT / "templates"), autoescape=False)
-    tmpl = env.from_string(template_str)
-    return tmpl.render(workorder=workorder)
+    generate_report_from_work_id(MOCK_WO_ID)
 
+    assert report_path.exists()
+    content = report_path.read_text()
+    assert MOCK_WO_DATA["title"] in content
+    assert MOCK_RELATED_DOC_CONTENT in content
 
-def write_report(report_path: Path, rendered: str, mode: Mode, original: str | None) -> None:
-    """モードに従ってレポートを書き込む"""
-    if mode == "RECOVER":
-        if original is None:
-            return
-        ts = datetime.now().strftime("%Y%m%dT%H%M%S")
-        recover = report_path.with_name(f"{report_path.stem}{RECOVER_SUFFIX}_{ts}.md")
-        recover.write_text(original, encoding="utf-8")
-        logger.warning(f"不整合検出: 元ファイルを {recover} に退避しました")
-        return
-    if mode == "APPEND":
-        original = original or ""
-        part = extract_part_from_content(original, TEMPLATE_START, TEMPLATE_END)
-        if part:
-            final = original.replace(part, rendered)
-            diff = difflib.unified_diff(
-                original.splitlines(keepends=True),
-                final.splitlines(keepends=True),
-                fromfile=f"a/{report_path.name}", tofile=f"b/{report_path.name}"
-            )
-            (report_path.with_suffix('.patch')).write_text(''.join(diff), encoding="utf-8")
-        else:
-            final = rendered
-    else:
-        final = rendered
-    report_path.write_text(final, encoding="utf-8")
-    logger.info(f"{mode} モードでレポートを保存しました: {report_path}")
+def test_determine_mode_append(tmp_path):
+    """APPENDモードが正しく判定されるかテスト"""
+    report_path = tmp_path / "report.md"
+    report_path.write_text("<!-- TEMPLATE_START -->\nOld content\n<!-- TEMPLATE_END -->\n\nUser content.")
+    
+    rendered_template = "<!-- TEMPLATE_START -->\nNew content\n<!-- TEMPLATE_END -->"
+    
+    mode, _ = determine_mode(report_path, rendered_template)
+    assert mode == "APPEND"
 
+def test_determine_mode_recover(tmp_path):
+    """RECOVERモードが正しく判定されるかテスト"""
+    report_path = tmp_path / "report.md"
+    report_path.write_text("Some content without markers.")
+    
+    rendered_template = "<!-- TEMPLATE_START -->\nTemplate\n<!-- TEMPLATE_END -->"
+    
+    mode, _ = determine_mode(report_path, rendered_template)
+    assert mode == "RECOVER"
 
-def clean_summary_content(md: str) -> str:
-    cleaned = __import__('re').sub(r'^(#{1,6})\s', r'#\1 ', md, flags=__import__('re').MULTILINE)
-    return cleaned.strip()
-
-
-def generate_report_from_work_id(work_id: str, force: bool = False):
-    try:
-        wo = load_workorder(work_id)
-        rpt = PROJECT_ROOT / f"workorders/reports/{work_id}_report.md"
-        tpl = PROJECT_ROOT / "templates/report_template.md"
-        if wo.get("summary_content"):
-            wo["summary_content"] = clean_summary_content(wo["summary_content"])
-        tpl_str = extract_template_from_file(tpl)
-        rendered = render_template(tpl_str, wo)
-        mode, original = determine_mode(rpt, rendered)
-        final_mode = "FORCED_OVERWRITE" if (force or FORCE_OVERWRITE_ENV) else mode
-        if final_mode == "FORCED_OVERWRITE":
-            logger.info(f"強制上書きモードを検出: {mode} -> {final_mode} に切替")
-        write_report(rpt, rendered, final_mode, original)
-        logger.info(f"実行モード: {final_mode}")
-    except Exception as e:
-        logger.error(f"エラー: {e}", exc_info=True)
-        raise
-
-
-def main():
-    parser = argparse.ArgumentParser(description="作業報告書を自動生成・更新します。")
-    parser.add_argument("--work-id", required=True, help="ワークオーダーID (例: 20250709-001)")
-    parser.add_argument("--force", action="store_true", help="強制上書きモード")
-    args = parser.parse_args()
-    generate_report_from_work_id(args.work_id, args.force)
-
-if __name__ == "__main__":
-    main()
+def test_clean_summary_content():
+    """Markdown見出しレベルが正しく調整されるかテスト"""
+    content = "# Title\n## Subtitle\nSome text."
+    expected = "## Title\n### Subtitle\nSome text."
+    assert clean_summary_content(content) == expected

@@ -28,8 +28,16 @@ CLI スクリプト: ワークオーダー JSON と Markdown テンプレート�
 実行結果をログに記録します。
 """
 
-SCRIPT_DIR = Path(__file__).parent.resolve()
-PROJECT_ROOT = Path(os.environ.get("PROJECT_ROOT", SCRIPT_DIR.parent)).resolve()
+def find_project_root(marker: str = "pyproject.toml") -> Path:
+    """マーカーファイルを探索してプロジェクトルートを見つける"""
+    current_dir = Path(__file__).parent.resolve()
+    while current_dir != current_dir.parent:
+        if (current_dir / marker).exists():
+            return current_dir
+        current_dir = current_dir.parent
+    raise FileNotFoundError(f"Project root with marker '{marker}' not found.")
+
+PROJECT_ROOT = find_project_root()
 
 
 # --- 設定 ---
@@ -44,7 +52,7 @@ PROJECT_ROOT = SCRIPT_DIR.parent
 LOG_FILE = PROJECT_ROOT / "logs/report_generator.log"
 
 # デバッグ用にPROJECT_ROOTを出力
-print(f"DEBUG: Project root is set to: {PROJECT_ROOT}")
+
 
 # ログディレクトリが存在しない場合は作成
 LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -71,6 +79,41 @@ load_dotenv(dotenv_path=PROJECT_ROOT / ".env")
 FORCE_OVERWRITE_ENV = os.getenv("FORCE_OVERWRITE", "false").lower() == "true"
 
 
+def resolve_path(base_path: Path, relative_path_str: str | None) -> Path | None:
+    """
+    ベースパスと相対パスを賢く結合する。
+    相対パスがベースパスの末尾部分と重複している場合、重複を避ける。
+    例:
+    base: /a/b/c
+    rel:  b/c/d/e.txt
+    -> /a/b/c/d/e.txt
+    """
+    if not relative_path_str:
+        return None
+
+    relative_path = Path(relative_path_str)
+    if relative_path.is_absolute():
+        return relative_path
+
+    base_parts = base_path.parts
+    rel_parts = relative_path.parts
+
+    overlap_len = 0
+    # base_partsの末尾とrel_partsの先頭がどれだけ重複しているか探す
+    for i in range(min(len(base_parts), len(rel_parts)), 0, -1):
+        if base_parts[-i:] == rel_parts[:i]:
+            overlap_len = i
+            break
+    
+    if overlap_len > 0:
+        # 重複部分を除いたパスを結合
+        new_rel_parts = rel_parts[overlap_len:]
+        return base_path.joinpath(*new_rel_parts)
+
+    # 重複がない場合はそのまま結合
+    return base_path / relative_path
+
+
 def load_workorder(work_id: str) -> dict:
     """指定されたワークオーダーIDのJSONファイルを読み込む"""
     # work_id が 'WO-' で始まっていない場合、プレフィックスを追加
@@ -83,30 +126,32 @@ def load_workorder(work_id: str) -> dict:
 
     # 関連ドキュメントの内容を読み込み、workorder_dataに追加
     # detail_report_path を優先的に読み込む
-    detail_report_path = workorder_data.get("detail_report_path")
+    detail_report_path = resolve_path(PROJECT_ROOT, workorder_data.get("detail_report_path"))
     if detail_report_path:
-        full_detail_report_path = PROJECT_ROOT / detail_report_path
-        if full_detail_report_path.exists():
-            with open(full_detail_report_path, encoding="utf-8") as f:
+        if detail_report_path.exists():
+            with open(detail_report_path, encoding="utf-8") as f:
                 workorder_data["summary_content"] = f.read()
         else:
-            logger.warning(f"詳細レポートファイルが見つかりません: {full_detail_report_path}")
+            logger.warning(f"詳細レポートファイルが見つかりません: {detail_report_path}")
             workorder_data["summary_content"] = ""
     else:
         # 既存の関連ドキュメントの読み込みロジック
-        related_docs_path = workorder_data.get("file_path") or workorder_data.get("metadata", {}).get("related_docs")
+        related_docs_path_str = workorder_data.get("file_path") or workorder_data.get("metadata", {}).get("related_docs")
+        related_docs_path = resolve_path(PROJECT_ROOT, related_docs_path_str)
         if related_docs_path:
-            full_related_docs_path = PROJECT_ROOT / related_docs_path
-            if full_related_docs_path.exists():
-                with open(full_related_docs_path, encoding="utf-8") as f:
+            if related_docs_path.exists():
+                with open(related_docs_path, encoding="utf-8") as f:
                     workorder_data["summary_content"] = f.read()
             else:
-                logger.warning(f"関連ドキュメントが見つかりません: {full_related_docs_path}")
+                logger.warning(f"関連ドキュメントが見つかりません: {related_docs_path}")
                 workorder_data["summary_content"] = ""
         else:
             workorder_data["summary_content"] = ""
 
     workorder_data.setdefault("metadata", {})
+
+    # 常に正規化されたIDを返すようにする
+    workorder_data["id"] = formatted_work_id
 
     return workorder_data
 
@@ -231,7 +276,7 @@ def generate_report_from_work_id(work_id: str, force: bool = False):
     """指定されたワークオーダーIDに基づいてレポートを生成・更新する"""
     try:
         workorder = load_workorder(work_id)
-        report_path = PROJECT_ROOT / f"workorders/reports/{work_id}_report.md"
+        report_path = PROJECT_ROOT / f"workorders/reports/{workorder['id']}_report.md"
         template_path = PROJECT_ROOT / "templates/report_template.md"
 
         # summary_content の見出しレベルを調整
