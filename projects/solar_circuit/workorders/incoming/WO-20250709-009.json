@@ -12,9 +12,19 @@
   "cli_reference": "projects/solar_circuit/docs/GEMINI.md",
   "due": "2025-07-11T23:59:00+09:00",
   "assigned_to": "gemini-cli",
-  "modes": ["NEW","APPEND","OVERWRITE_TEMPLATE","RECOVER"],
-  "markers": {"start":"<!-- TEMPLATE_START -->","end":"<!-- TEMPLATE_END -->"},
-  "metadata": {"related_docs":"projects/solar_circuit/collaboration/design_docs/004_workorder.md"},
+  "modes": [
+    "NEW",
+    "APPEND",
+    "OVERWRITE_TEMPLATE",
+    "RECOVER"
+  ],
+  "markers": {
+    "start": "<!-- TEMPLATE_START -->",
+    "end": "<!-- TEMPLATE_END -->"
+  },
+  "metadata": {
+    "related_docs": "projects/solar_circuit/collaboration/design_docs/004_workorder.md"
+  },
   "steps_formatted": "- [ ] Add `detail_report_path` field to workorder_template.json\n- [ ] Update workorder JSON files to include `detail_report_path`",
   "expected_output_formatted": "- [ ] `workorder_template.json` contains `detail_report_path`\n- [ ] Existing WO-*.json include valid `detail_report_path` entries"
 }

@@ -12,9 +12,19 @@
   "cli_reference": "projects/solar_circuit/docs/GEMINI.md",
   "due": "2025-07-13T23:59:00+09:00",
   "assigned_to": "gemini-cli",
-  "modes": ["NEW","APPEND","OVERWRITE_TEMPLATE","RECOVER"],
-  "markers": {"start":"<!-- TEMPLATE_START -->","end":"<!-- TEMPLATE_END -->"},
-  "metadata": {"related_docs":"projects/solar_circuit/collaboration/design_docs/006_workorder.md"},
+  "modes": [
+    "NEW",
+    "APPEND",
+    "OVERWRITE_TEMPLATE",
+    "RECOVER"
+  ],
+  "markers": {
+    "start": "<!-- TEMPLATE_START -->",
+    "end": "<!-- TEMPLATE_END -->"
+  },
+  "metadata": {
+    "related_docs": "projects/solar_circuit/collaboration/design_docs/006_workorder.md"
+  },
   "steps_formatted": "- [ ] Add `clean_summary_content` function to adjust heading levels\n- [ ] Call it before rendering `summary_content`",
   "expected_output_formatted": "- [ ] Headings in inserted content are shifted down one level\n- [ ] Markdown preview shows correct hierarchy"
 }

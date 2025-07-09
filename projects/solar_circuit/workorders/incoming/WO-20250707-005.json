@@ -14,5 +14,5 @@
   "examples": [],
   "success_cmd": "pytest",
   "deadline": "2025-07-14",
-  "detail_report_path": "projects/solar_circuit/workorders/reports/WO-20250707-005_detail_report.md"
+  "detail_report_path": "projects/solar_circuit/collaboration/detailed_reports/WO-20250707-005_detail_report.md"
 }

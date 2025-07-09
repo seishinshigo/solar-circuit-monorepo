@@ -5,7 +5,7 @@
   "priority": "high",
   "file_path": "projects/solar_circuit/collaboration/design_docs/WO-YYYYMMDD-XXX_workorder.md",
   "template_path": "projects/solar_circuit/templates/report_template.md",
-  "detail_report_path": "projects/solar_circuit/workorders/reports/WO-YYYYMMDD-XXX_detail_report.md",
+  "detail_report_path": "projects/solar_circuit/collaboration/detailed_reports/WO-YYYYMMDD-XXX_detail_report.md",
   "script_path": "projects/solar_circuit/scripts/report_generator.py",
   "log_path": "projects/solar_circuit/logs/report_generator.log",
   "test_path": "projects/solar_circuit/tests/test_report_generator.py",
