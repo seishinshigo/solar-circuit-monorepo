@@ -55,6 +55,20 @@ jobs:
             fi
           done
 
+      - name: Verify commit scope
+        run: |
+          echo "Checking staged files for unintended changes..."
+          UNINTENDED_FILES=$(git diff --cached --name-only | grep -v -E '^(projects/solar_circuit/workorders/incoming/WO-[0-9]{8}-[0-9]{3}\.json|projects/solar_circuit/workorders/reports/WO-[0-9]{8}-[0-9]{3}_report\.md)
+)
+          
+          if [ -n "$UNINTENDED_FILES" ]; then
+            echo "ERROR: Unintended files are staged for commit:"
+            echo "$UNINTENDED_FILES"
+            exit 1
+          else
+            echo "All staged files are within the expected scope."
+          fi
+
       - name: Commit & push reports
         run: |
           git config --global user.name 'github-actions[bot]'
