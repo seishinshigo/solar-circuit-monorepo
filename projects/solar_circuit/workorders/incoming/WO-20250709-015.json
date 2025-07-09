@@ -3,7 +3,7 @@
   "title": "Refine path resolution and update related_docs references",
   "status": "open",
   "priority": "high",
-  "file_path": "projects/solar_circuit/collaboration/design_docs/010_workorder.md",
+  "file_path": "projects/solar_circuit/collaboration/design_docs/WO-20250709-015_workorder.md",
   "template_path": "projects/solar_circuit/templates/report_template.md",
   "script_path": "projects/solar_circuit/scripts/report_generator.py",
   "log_path": "projects/solar_circuit/logs/report_generator.log",
@@ -18,7 +18,7 @@
     "end": "<!-- TEMPLATE_END -->"
   },
   "metadata": {
-    "related_docs": "projects/solar_circuit/collaboration/design_docs/010_workorder.md"
+    "related_docs": "projects/solar_circuit/collaboration/design_docs/WO-20250709-015_workorder.md"
   },
   "steps_formatted": "- [ ] Audit `report_generator.py` and `cli.py` for how paths are joined\n- [ ] Update code to compute absolute paths by joining project root with *relative* paths only once\n- [ ] Correct `related_docs`, `template_path`, `log_path` resolution to avoid duplication of `projects/solar_circuit`\n- [ ] Add unit tests covering missing-file and path-duplication scenarios\n- [ ] Verify with `sc report create WO-20250709-012` that no warning appears",
   "expected_output_formatted": "- [ ] No more `関連ドキュメントが見つかりません` warnings when running report create\n- [ ] Paths like `projects/solar_circuit/collaboration/design_docs/010_workorder.md` resolve correctly\n- [ ] Test suite includes at least one test for path-duplication bug\n- [ ] CI passes without errors on this branch"
