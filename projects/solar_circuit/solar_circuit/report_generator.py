@@ -82,17 +82,29 @@ def load_workorder(work_id: str) -> dict:
         workorder_data = json.load(f)
 
     # 関連ドキュメントの内容を読み込み、workorder_dataに追加
-    related_docs_path = workorder_data.get("file_path") or workorder_data.get("metadata", {}).get("related_docs")
-    if related_docs_path:
-        full_related_docs_path = PROJECT_ROOT / related_docs_path # プロジェクトルートからパスを解決
-        if full_related_docs_path.exists():
-            with open(full_related_docs_path, encoding="utf-8") as f:
+    # detail_report_path を優先的に読み込む
+    detail_report_path = workorder_data.get("detail_report_path")
+    if detail_report_path:
+        full_detail_report_path = PROJECT_ROOT / detail_report_path
+        if full_detail_report_path.exists():
+            with open(full_detail_report_path, encoding="utf-8") as f:
                 workorder_data["summary_content"] = f.read()
         else:
-            logger.warning(f"関連ドキュメントが見つかりません: {full_related_docs_path}")
+            logger.warning(f"詳細レポートファイルが見つかりません: {full_detail_report_path}")
             workorder_data["summary_content"] = ""
     else:
-        workorder_data["summary_content"] = ""
+        # 既存の関連ドキュメントの読み込みロジック
+        related_docs_path = workorder_data.get("file_path") or workorder_data.get("metadata", {}).get("related_docs")
+        if related_docs_path:
+            full_related_docs_path = PROJECT_ROOT / related_docs_path
+            if full_related_docs_path.exists():
+                with open(full_related_docs_path, encoding="utf-8") as f:
+                    workorder_data["summary_content"] = f.read()
+            else:
+                logger.warning(f"関連ドキュメントが見つかりません: {full_related_docs_path}")
+                workorder_data["summary_content"] = ""
+        else:
+            workorder_data["summary_content"] = ""
 
     workorder_data.setdefault("metadata", {})
 
