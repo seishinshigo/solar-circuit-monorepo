@@ -1,0 +1,20 @@
+--- a/WO-20250709-015_report.md
++++ b/WO-20250709-015_report.md
+@@ -8,14 +8,16 @@
+ - **ワークオーダーID**: WO-20250709-015
+ - **タイトル**: Refine path resolution and update related_docs references
+ 
+-- **関連ドキュメント**: projects/solar_circuit/collaboration/design_docs/010_workorder.md
++- **関連ドキュメント**: projects/solar_circuit/collaboration/design_docs/WO-20250709-015_workorder.md
+ 
+ 
+ ## 2. 作業内容
+ 
+ 実施した作業の詳細を記述します。具体的な手順、変更点、実装上の工夫などを分かりやすく説明します。
+ 
++## Workorder WO-20250709-015
+ 
++This is a placeholder document for the workorder.
+ 
+ ### 2.1. ワークオーダーのステップ
+ 

@@ -24,5 +24,6 @@
   "metadata": {
     "created_by": "openai-chatgpt",
     "base_branch": "main"
-  }
+  },
+  "detail_report_path": "projects/solar_circuit/workorders/reports/wo-20240710-004_detail_report.md"
 }

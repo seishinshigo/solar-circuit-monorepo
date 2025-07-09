@@ -1,70 +1,53 @@
-name: autosave-report
+name: autosave
 
 on:
   push:
-    branches:
-      - main
     paths:
-      - 'projects/solar_circuit/workorders/incoming/**.json'
-      - 'projects/solar_circuit/templates/**.md'
+      - 'projects/solar_circuit/workorders/incoming/*.json'
 
 jobs:
   ensure-report:
+    name: Generate report for each new workorder
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: projects/solar_circuit
-
     steps:
       - name: Checkout HEAD
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: '3.12'
 
       - name: Install dependencies
         run: |
-          pip install -r requirements-dev.txt
-
-      - name: Install dependencies
-        run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
-          pip install -e .
-
-      - name: List changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v44
-        with:
-          files: projects/solar_circuit/workorders/incoming/**.json
+          pip install -r projects/solar_circuit/requirements.txt
 
       - name: Generate report for each new workorder
-        env:
-          SC_REPORT_COMMAND: "sc report save"
         run: |
-          for file in ${{ steps.changed-files.outputs.added_files }}; do
-            if [[ $file =~ (WO-[0-9]{8}-[0-9]{3})\.json$ ]]; then
-              WO_ID=${BASH_REMATCH[1]}
-              REPORT_FILE="projects/solar_circuit/workorders/reports/${WO_ID}_report.md"
-              echo "--- Generating report for ${WO_ID} ---"
-              # 一時的なレポートファイルを作成し、sc report save に渡す
-              echo "# Report for ${WO_ID}" > "${REPORT_FILE}"
-              ${SC_REPORT_COMMAND} ${WO_ID} "${REPORT_FILE}"
-            fi
+          for file in projects/solar_circuit/workorders/incoming/WO-*.json; do
+            echo "--- Generating report for $(basename $file .json) ---"
+            python projects/solar_circuit/solar_circuit/report_generator.py \
+              --work-id "$(basename "$file" .json)"
           done
+
+      - name: Verify commit scope
+        run: |
+          echo "Checking staged files for unintended changes..."
+          UNINTENDED_FILES=$(git diff --cached --name-only | grep -v -E '^(projects/solar_circuit/workorders/reports/.*\.md)$' || true)
+
+          if [ -n "$UNINTENDED_FILES" ]; then
+            echo "ERROR: Unintended files are staged for commit:"
+            echo "$UNINTENDED_FILES"
+            exit 1
+          else
+            echo "✅ All staged files are within the expected scope."
+          fi
 
       - name: Commit & push reports
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git status --porcelain | grep 'workorders/reports/.*\.md' | awk '{print $2}' | xargs -I {} git add {}
-          
-          if git diff --staged --quiet; then
-            echo "No new reports to commit."
-            exit 0
-          fi
-          
-          git commit -m "chore(report): autosave generated reports"
+          git commit -m "docs: auto-generate report(s)" || echo "No changes to commit."
           git push

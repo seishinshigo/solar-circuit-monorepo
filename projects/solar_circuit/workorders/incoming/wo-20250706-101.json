@@ -4,7 +4,10 @@
   "objective": "Solar Circuit v2 の進捗確認ドキュメントをレビューし、必要なファイル更新とタスク実行を行う",
   "constraints": {
     "deadline": "2025-07-10T15:00:00Z",
-    "language": ["python3.12", "yaml"],
+    "language": [
+      "python3.12",
+      "yaml"
+    ],
     "sla": "silver"
   },
   "tasks": [
@@ -37,5 +40,6 @@
     "created_by": "openai-gpt4o",
     "repo": "seishinshigo/solar-circuit-monorepo",
     "branch": "main"
-  }
+  },
+  "detail_report_path": "projects/solar_circuit/workorders/reports/wo-20250706-101_detail_report.md"
 }

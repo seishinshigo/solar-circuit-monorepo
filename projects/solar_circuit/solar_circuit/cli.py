@@ -131,8 +131,10 @@ def create_report(
 ):
     """指定された Work-Order ID のレポートを生成・更新"""
     try:
-        generate_report_from_work_id(work_id, force)
-        typer.echo(f"✅ Report for WO-{work_id} processed successfully.")
+        # work_idを正規化
+        formatted_id = work_id if work_id.startswith("WO-") else f"WO-{work_id}"
+        generate_report_from_work_id(formatted_id, force)
+        typer.echo(f"✅ Report for {formatted_id} processed successfully.")
     except FileNotFoundError as e:
         typer.echo(f"❌ Error: {e}")
         raise typer.Exit(code=1)

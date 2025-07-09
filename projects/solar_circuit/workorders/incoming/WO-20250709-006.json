@@ -26,5 +26,6 @@
     "related_docs": "collaboration/design_docs/WO-20250709-006_workorder.md"
   },
   "steps_formatted": "- [ ] チャット欄で依頼された作業を、テンプレートを用いてワークオーダーとして受理し、処理を進める",
-  "expected_output_formatted": "- [x] レポートが生成され、正しいモードで保存されている\n- [x] CLIからの呼び出しが正常に動作する\n- [x] テストがグリーンである"
+  "expected_output_formatted": "- [x] レポートが生成され、正しいモードで保存されている\n- [x] CLIからの呼び出しが正常に動作する\n- [x] テストがグリーンである",
+  "detail_report_path": "projects/solar_circuit/collaboration/detailed_reports/WO-20250709-006_detail_report.md"
 }
