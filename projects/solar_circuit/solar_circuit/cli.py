@@ -80,49 +80,6 @@ def _validate_json(file: Path, schema_path: Path):
 
 from solar_circuit.report_generator import generate_report_from_work_id
 
-# ╭──────────────────── Work-Order / Report Validate ─────────────────╮
-@plan_app.command("validate")
-def validate_workorder(
-    file: Path = typer.Argument(..., exists=True, readable=True)
-):
-    """Work-Order JSON をスキーマ検証"""
-    schema_path = Path("shared_libs/schemas/gemini.workorder@1.json")
-    _validate_json(file, schema_path)
-
-
-@report_app.command("validate")
-def validate_report(
-    file: Path = typer.Argument(..., exists=True, readable=True)
-):
-    """Status-Report JSON をスキーマ検証 (外部 $ref 対応)"""
-    schema_dir = Path("shared_libs/schemas")
-    report_schema = schema_dir / "gemini.report@1.json"
-    work_schema   = schema_dir / "gemini.workorder@1.json"
-
-    with work_schema.open() as f:
-        work_def = json.load(f)
-    with report_schema.open() as f:
-        rep_def = json.load(f)
-
-    with file.open() as f:
-        instance = json.load(f)
-
-    resolver = jsonschema.RefResolver.from_schema(rep_def, store={work_def["$id"]: work_def})
-    jsonschema.validate(instance, rep_def, resolver=resolver)
-    typer.echo(f"✅ {file} is valid.")
-
-
-def _validate_json(file: Path, schema_path: Path):
-    try:
-        schema = json.loads(schema_path.read_text())
-        data   = json.loads(file.read_text())
-        jsonschema.validate(instance=data, schema=schema)
-        typer.echo(f"✅ {file} is valid.")
-    except (json.JSONDecodeError, jsonschema.ValidationError) as e:
-        typer.echo(f"❌ Validation failed: {e}")
-        raise typer.Exit(code=1)
-# ╰────────────────────────────────────────────────────────────────────╯
-
 
 @report_app.command("create")
 def create_report(
@@ -178,7 +135,7 @@ def create_wo_from_chat(
         else:
             # デフォルトで3日後を設定
             default_due = today + datetime.timedelta(days=3)
-            wo_template["due"] = f"{default_due.strftime("%Y-%m-%d")}T23:59:00+09:00"
+            wo_template["due"] = f"{default_due.strftime('%Y-%m-%d')}T23:59:00+09:00"
 
         # file_path と related_docs の更新
         doc_filename = f"{wo_id}_workorder.md"
